@@ -1,0 +1,5 @@
+body {
+  margin: 0 !important; /* Remove a margem padrão */
+  padding: 0 !important;
+  overflow-x: hidden; /* Evita rolagem horizontal */
+}
