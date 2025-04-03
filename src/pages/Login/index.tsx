@@ -34,7 +34,7 @@ import {
   SocialButtons,
   SocialButton,
 } from "./styles";
-import SocialIcons from "../../components/SocialIcons";
+import SocialIcons from "../../components/Login/SocialIcons";
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
