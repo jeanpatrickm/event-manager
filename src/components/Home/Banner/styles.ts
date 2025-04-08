@@ -22,11 +22,7 @@ export const BannerContainer = styled.div<BannerContainerProps>`
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(
-      90deg,
-      rgba(255, 0, 128, 0.5) 0%,
-      rgba(0, 128, 255, 0.5) 100%
-    );
+    background: linear-gradient(90deg, #a855f7 0%, #6366f1 100%);
   }
 `;
 

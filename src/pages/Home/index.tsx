@@ -15,7 +15,7 @@ const HomePage: React.FC = () => {
       title: "Virtual Reality",
       description:
         "A community for VR and novices alike, regular and friendly chat.",
-      image: "/placeholder.svg?height=300&width=500",
+      image: "/images/aaa.jpg?height=200&width=200",
       onlineCount: 5678,
       memberCount: 345678,
     },
@@ -23,6 +23,54 @@ const HomePage: React.FC = () => {
       id: "2",
       title: "Game Play",
       description: "Always a new challenge. Great place to make new friends.",
+      image: "/placeholder.svg?height=300&width=500",
+      onlineCount: 18201,
+      memberCount: 327453,
+    },
+    {
+      id: "3",
+      title: "Game Play",
+      description: "Always a new challenge. Great place to make new friends.",
+      image: "/placeholder.svg?height=300&width=500",
+      onlineCount: 18201,
+      memberCount: 327453,
+    },
+    {
+      id: "4",
+      title: "Game Play",
+      description: "Always a new challenge. Great place to make new friends.",
+      image: "/placeholder.svg?height=300&width=500",
+      onlineCount: 18201,
+      memberCount: 327453,
+    },
+    {
+      id: "5",
+      title: "Game Play",
+      description: "Always a new challenge. Great place to make new friends.",
+      image: "/placeholder.svg?height=300&width=500",
+      onlineCount: 18201,
+      memberCount: 327453,
+    },
+    {
+      id: "6",
+      title: "testetitle",
+      description: "aula de teste",
+      image: "/placeholder.svg?height=300&width=500",
+      onlineCount: 18201,
+      memberCount: 327453,
+    },
+    {
+      id: "7",
+      title: "testetitle",
+      description: "aula de teste",
+      image: "/placeholder.svg?height=300&width=500",
+      onlineCount: 18201,
+      memberCount: 327453,
+    },
+    {
+      id: "8",
+      title: "testetitle",
+      description: "aula de teste",
       image: "/placeholder.svg?height=300&width=500",
       onlineCount: 18201,
       memberCount: 327453,
@@ -44,6 +92,20 @@ const HomePage: React.FC = () => {
       image: "/placeholder.svg?height=300&width=500",
       memberCount: 887789,
     },
+    {
+      id: "5",
+      title: "test de forma de test",
+      description: "test de forma de test",
+      image: "/placeholder.svg?height=300&width=500",
+      memberCount: 887789,
+    },
+    {
+      id: "6",
+      title: "test de forma de test",
+      description: "test de forma de test",
+      image: "/placeholder.svg?height=300&width=500",
+      memberCount: 887789,
+    },
   ];
 
   const newMembers = [
@@ -54,22 +116,10 @@ const HomePage: React.FC = () => {
       timeAgo: "5 min ago",
     },
     {
-      id: "m2",
-      name: "Miriam Soleil",
-      image: "/placeholder.svg?height=100&width=100",
-      timeAgo: "20 min ago",
-    },
-    {
       id: "m3",
       name: "Marie Laval",
       image: "/placeholder.svg?height=100&width=100",
       timeAgo: "35 min ago",
-    },
-    {
-      id: "m4",
-      name: "Mark Morain",
-      image: "/placeholder.svg?height=100&width=100",
-      timeAgo: "40 min ago",
     },
   ];
 
@@ -116,9 +166,9 @@ const HomePage: React.FC = () => {
 
       <RightSidebar>
         <Profile
-          name="Sophie Fortune"
-          username="@sophiefortune"
-          image="/placeholder.svg?height=200&width=200"
+          name="J a y"
+          username="@Jay"
+          image="/images/aaa.jpg?height=200&width=200"
           newMembers={newMembers}
         />
       </RightSidebar>

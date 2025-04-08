@@ -15,6 +15,7 @@ import {
   Atom,
   Film,
   Users,
+  CirclePlus,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -24,6 +25,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ activeItem = "Home" }) => {
   const menuItems = [
     { id: "home", label: "Home", icon: <Home size={20} /> },
+    { id: "criarevent", label: "Criar evento", icon: <CirclePlus size={20} /> },
     { id: "music", label: "Music", icon: <Music size={20} /> },
     { id: "gaming", label: "Gaming", icon: <GameController size={20} /> },
     { id: "education", label: "Education", icon: <GraduationCap size={20} /> },

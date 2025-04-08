@@ -1,7 +1,7 @@
 import styled from "styled-components";
 
 export const ProfileContainer = styled.div`
-  width: 220px;
+  width: 219px;
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -33,7 +33,7 @@ export const ProfileUsername = styled.p`
 
 export const ProfileSection = styled.div`
   width: 100%;
-  margin-bottom: 25px;
+  margin-bottom: 20px;
 `;
 
 export const ProfileSectionTitle = styled.h4`

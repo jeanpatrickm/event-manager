@@ -55,7 +55,7 @@ export const WaveVisualizer = styled.div`
   left: 10px;
   right: 10px;
   height: 40px;
-  background: linear-gradient(90deg, #6e3fdc 0%, #b066f2 100%);
+  background: linear-gradient(90deg, #a855f7 0%, #6366f1 100%);
   border-radius: 10px;
 
   &:before {
