@@ -18,7 +18,7 @@ const ProfilePage: React.FC = () => {
     displayName: "J a y",
     avatarUrl: "/images/aaa.jpg?height=200&width=200",
     bannerUrl: undefined,
-    events: 17,
+    events: 5,
   };
 
   const createdEvents = [

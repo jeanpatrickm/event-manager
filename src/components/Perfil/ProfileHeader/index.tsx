@@ -13,6 +13,8 @@ import {
   ProfileActions,
   ActionButton,
 } from "./styles";
+import "lucide-react";
+import { Instagram, Linkedin } from "lucide-react";
 
 interface ProfileHeaderProps {
   username: string;
@@ -43,12 +45,16 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             <StatValue>{events}</StatValue>
             <StatLabel>Eventos</StatLabel>
           </StatItem>
-          <StatItem></StatItem>
-          <StatItem></StatItem>
         </ProfileStats>
         <ProfileActions>
-          <ActionButton $primary>Seguir</ActionButton>
-          <ActionButton>Mensagem</ActionButton>
+          <ActionButton $primary>
+            <Instagram size={14} />
+            Instagram
+          </ActionButton>
+          <ActionButton $primary>
+            <Linkedin size={14} />
+            LinkedIn
+          </ActionButton>
         </ProfileActions>
       </ProfileInfo>
     </ProfileHeaderContainer>
