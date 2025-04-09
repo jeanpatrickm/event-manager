@@ -15,7 +15,7 @@ const HomePage: React.FC = () => {
       title: "Virtual Reality",
       description:
         "A community for VR and novices alike, regular and friendly chat.",
-      image: "/images/aaa.jpg?height=200&width=200",
+      image: "/images/virtual_reality.jpg?height=200&width=200",
       onlineCount: 5678,
       memberCount: 345678,
     },
@@ -23,7 +23,7 @@ const HomePage: React.FC = () => {
       id: "2",
       title: "Game Play",
       description: "Always a new challenge. Great place to make new friends.",
-      image: "/placeholder.svg?height=300&width=500",
+      image: "/images/gameplay.jpg?height=200&width=200",
       onlineCount: 18201,
       memberCount: 327453,
     },

@@ -51,7 +51,7 @@ const LoginPage: React.FC = () => {
   return (
     <Container>
       <LeftSection>
-        <Logo>EventHub</Logo>
+        <Logo>Event Manager</Logo>
         <GradientCard>
           <CardTitle>Gerencie seus eventos</CardTitle>
           <CardText>
