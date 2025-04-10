@@ -9,31 +9,34 @@ import {
   NavLink,
   NavText,
 } from "./styles";
+import { Link } from "react-router-dom";
 
 const Sidebar: React.FC = () => {
   return (
     <SidebarContainer>
       <Logo>
-        <LogoText>EventManager</LogoText>
+        <Link to="/" style={{ textDecoration: "none", color: "inherit" }}>
+          <LogoText>EventManager</LogoText>
+        </Link>
       </Logo>
 
       <NavList>
         <NavItem>
-          <NavLink href="/Home" $active={false}>
+          <NavLink as={Link} to="/" $active={false}>
             <Home size={20} />
             <NavText>Home</NavText>
           </NavLink>
         </NavItem>
 
         <NavItem>
-          <NavLink href="/create-event" $active={true}>
+          <NavLink as={Link} to="/create-event" $active={false}>
             <Calendar size={20} />
             <NavText>Create Event</NavText>
           </NavLink>
         </NavItem>
 
         <NavItem>
-          <NavLink href="/public-events" $active={false}>
+          <NavLink as={Link} to="/" $active={false}>
             <Users size={20} />
             <NavText>Public Events</NavText>
           </NavLink>
