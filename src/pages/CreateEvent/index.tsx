@@ -11,6 +11,11 @@ import {
   Info,
   Tag,
   X,
+  User,
+  Globe,
+  Lock,
+  Monitor,
+  Map,
 } from "lucide-react";
 import {
   Container,
@@ -31,6 +36,10 @@ import {
   TagItem,
   TagInput,
   ErrorMessage,
+  RadioGroup,
+  RadioOption,
+  RadioInput,
+  RadioLabel,
 } from "./styles";
 import Sidebar from "../../components/CreateEvent/SideBar";
 import TopBar from "../../components/CreateEvent/TopBar";
@@ -45,6 +54,11 @@ interface FormData {
   category: string;
   tags: string[];
   coverImage: File | null;
+  organizerName: string;
+  eventType: "public" | "private";
+  eventMode: "online" | "in-person";
+  onlinePlatform?: string;
+  onlineLink?: string;
 }
 
 interface FormErrors {
@@ -53,6 +67,8 @@ interface FormErrors {
   date?: string;
   time?: string;
   location?: string;
+  organizerName?: string;
+  onlineLink?: string;
 }
 
 const CreateEvent: React.FC = () => {
@@ -66,6 +82,11 @@ const CreateEvent: React.FC = () => {
     category: "",
     tags: [],
     coverImage: null,
+    organizerName: "",
+    eventType: "public",
+    eventMode: "in-person",
+    onlinePlatform: "",
+    onlineLink: "",
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -84,6 +105,10 @@ const CreateEvent: React.FC = () => {
     if (errors[name as keyof FormErrors]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
+  };
+
+  const handleRadioChange = (name: keyof FormData, value: any) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -148,6 +173,14 @@ const CreateEvent: React.FC = () => {
       newErrors.location = "Localização é obrigatória";
     }
 
+    if (!formData.organizerName.trim()) {
+      newErrors.organizerName = "Nome do organizador é obrigatório";
+    }
+
+    if (formData.eventMode === "online" && !formData.onlineLink?.trim()) {
+      newErrors.onlineLink = "Link para o evento online é obrigatório";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -186,7 +219,26 @@ const CreateEvent: React.FC = () => {
           </Header>
 
           <form onSubmit={handleSubmit}>
+            {/* Seção de Informações Básicas */}
             <FormSection>
+              <InputGroup>
+                <Label htmlFor="organizerName">
+                  <User size={16} />
+                  Nome do Organizador*
+                </Label>
+                <Input
+                  id="organizerName"
+                  name="organizerName"
+                  value={formData.organizerName}
+                  onChange={handleInputChange}
+                  placeholder="Seu nome ou nome da organização"
+                  hasError={!!errors.organizerName}
+                />
+                {errors.organizerName && (
+                  <ErrorMessage>{errors.organizerName}</ErrorMessage>
+                )}
+              </InputGroup>
+
               <InputGroup>
                 <Label htmlFor="title">
                   <Info size={16} />
@@ -223,6 +275,111 @@ const CreateEvent: React.FC = () => {
               </InputGroup>
             </FormSection>
 
+            {/* Seção de Tipo e Modo do Evento */}
+            <FormSection>
+              <InputGroup>
+                <Label>
+                  <Globe size={16} />
+                  Tipo de Evento
+                </Label>
+                <RadioGroup>
+                  <RadioOption>
+                    <RadioInput
+                      type="radio"
+                      id="public"
+                      name="eventType"
+                      checked={formData.eventType === "public"}
+                      onChange={() => handleRadioChange("eventType", "public")}
+                    />
+                    <RadioLabel htmlFor="public">
+                      <Globe size={14} /> Público
+                    </RadioLabel>
+                  </RadioOption>
+                  <RadioOption>
+                    <RadioInput
+                      type="radio"
+                      id="private"
+                      name="eventType"
+                      checked={formData.eventType === "private"}
+                      onChange={() => handleRadioChange("eventType", "private")}
+                    />
+                    <RadioLabel htmlFor="private">
+                      <Lock size={14} /> Privado
+                    </RadioLabel>
+                  </RadioOption>
+                </RadioGroup>
+              </InputGroup>
+
+              <InputGroup>
+                <Label>
+                  <Monitor size={16} />
+                  Modalidade do Evento
+                </Label>
+                <RadioGroup>
+                  <RadioOption>
+                    <RadioInput
+                      type="radio"
+                      id="online"
+                      name="eventMode"
+                      checked={formData.eventMode === "online"}
+                      onChange={() => handleRadioChange("eventMode", "online")}
+                    />
+                    <RadioLabel htmlFor="online">
+                      <Monitor size={14} /> Online
+                    </RadioLabel>
+                  </RadioOption>
+                  <RadioOption>
+                    <RadioInput
+                      type="radio"
+                      id="in-person"
+                      name="eventMode"
+                      checked={formData.eventMode === "in-person"}
+                      onChange={() =>
+                        handleRadioChange("eventMode", "in-person")
+                      }
+                    />
+                    <RadioLabel htmlFor="in-person">
+                      <Map size={14} /> Presencial
+                    </RadioLabel>
+                  </RadioOption>
+                </RadioGroup>
+
+                {/* Campos condicionais para eventos online */}
+                {formData.eventMode === "online" && (
+                  <>
+                    <Input
+                      as="select"
+                      name="onlinePlatform"
+                      value={formData.onlinePlatform}
+                      onChange={handleInputChange}
+                      style={{ marginTop: "12px" }}
+                    >
+                      <option value="">Selecione a plataforma</option>
+                      <option value="discord">Discord</option>
+                      <option value="zoom">Zoom</option>
+                      <option value="teams">Microsoft Teams</option>
+                      <option value="skype">Skype</option>
+                      <option value="google-meet">Google Meet</option>
+                      <option value="other">Outra plataforma</option>
+                    </Input>
+
+                    <Input
+                      name="onlineLink"
+                      value={formData.onlineLink || ""}
+                      onChange={handleInputChange}
+                      placeholder="Link para participar do evento"
+                      style={{ marginTop: "12px" }}
+                      hasError={!!errors.onlineLink}
+                    />
+                    {errors.onlineLink && (
+                      <ErrorMessage>{errors.onlineLink}</ErrorMessage>
+                    )}
+                  </>
+                )}
+              </InputGroup>
+            </FormSection>
+
+            {/* Seção de Data e Localização */}
             <FormSection>
               <InputGroup>
                 <Label htmlFor="date">
@@ -256,25 +413,28 @@ const CreateEvent: React.FC = () => {
                 {errors.time && <ErrorMessage>{errors.time}</ErrorMessage>}
               </InputGroup>
 
-              <InputGroup>
-                <Label htmlFor="location">
-                  <MapPin size={16} />
-                  Localização*
-                </Label>
-                <Input
-                  id="location"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleInputChange}
-                  placeholder="Onde o evento acontecerá?"
-                  hasError={!!errors.location}
-                />
-                {errors.location && (
-                  <ErrorMessage>{errors.location}</ErrorMessage>
-                )}
-              </InputGroup>
+              {formData.eventMode === "in-person" && (
+                <InputGroup>
+                  <Label htmlFor="location">
+                    <MapPin size={16} />
+                    Localização*
+                  </Label>
+                  <Input
+                    id="location"
+                    name="location"
+                    value={formData.location}
+                    onChange={handleInputChange}
+                    placeholder="Onde o evento acontecerá?"
+                    hasError={!!errors.location}
+                  />
+                  {errors.location && (
+                    <ErrorMessage>{errors.location}</ErrorMessage>
+                  )}
+                </InputGroup>
+              )}
             </FormSection>
 
+            {/* Seção de Configurações Adicionais */}
             <FormSection>
               <InputGroup>
                 <Label htmlFor="maxParticipants">
@@ -335,6 +495,7 @@ const CreateEvent: React.FC = () => {
               </InputGroup>
             </FormSection>
 
+            {/* Seção de Imagem de Capa */}
             <FormSection>
               <InputGroup>
                 <Label htmlFor="coverImage">

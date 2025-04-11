@@ -211,3 +211,28 @@ export const ErrorMessage = styled.p`
   font-size: 12px;
   margin-top: 4px;
 `;
+
+export const RadioGroup = styled.div`
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+`;
+
+export const RadioOption = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+export const RadioInput = styled.input`
+  margin-right: 8px;
+  accent-color: #8a5cf6;
+`;
+
+export const RadioLabel = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #c4c4d4;
+  cursor: pointer;
+`;

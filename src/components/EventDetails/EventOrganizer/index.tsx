@@ -20,7 +20,7 @@ const EventOrganizer: React.FC<EventOrganizerProps> = ({
 }) => {
   return (
     <OrganizerContainer>
-      <OrganizerAvatar src={avatar} alt={name} />
+      <OrganizerAvatar src={"/images/aaa.jpg"} alt={name} />
       <OrganizerInfo>
         <OrganizerName>Organizado por {name}</OrganizerName>
         <OrganizerTitle>{title}</OrganizerTitle>

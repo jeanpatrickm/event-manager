@@ -36,7 +36,7 @@ const EventHeader: React.FC<EventHeaderProps> = ({ status }) => {
 
   return (
     <HeaderContainer>
-      <BackButton as={Link} to="/events">
+      <BackButton as={Link} to="/">
         <ChevronLeft size={20} />
         Voltar para Eventos
       </BackButton>
