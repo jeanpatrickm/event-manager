@@ -35,6 +35,7 @@ import {
   SocialButton,
 } from "./styles";
 import SocialIcons from "../../components/Login/SocialIcons";
+import { Link } from "react-router-dom";
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -121,7 +122,10 @@ const LoginPage: React.FC = () => {
           </Form>
 
           <SignupText>
-            Não tem uma conta? <SignupLink href="#">Cadastre-se</SignupLink>
+            Não tem uma conta?{" "}
+            <SignupLink as={Link} to="/register">
+              Cadastre-se
+            </SignupLink>
           </SignupText>
 
           <SocialLoginSection>

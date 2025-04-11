@@ -7,15 +7,23 @@ export const Container = styled.div`
   background-color: #1e1e2e;
   color: #fff;
   font-family: "Inter", sans-serif;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
 `;
 
 export const LeftSection = styled.div`
-  flex: 1;
+  width: 50%;
+  max-width: 500px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 2rem;
+  padding: 3rem;
+
+  @media (max-width: 1024px) {
+    padding: 2rem;
+  }
 
   @media (max-width: 768px) {
     display: none;
@@ -26,42 +34,59 @@ export const Logo = styled.h1`
   font-size: 2.5rem;
   font-weight: 700;
   color: #a855f7;
-  margin-bottom: 2rem;
+  margin-bottom: 3rem;
+  align-self: flex-start;
 `;
 
 export const GradientCard = styled.div`
   background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
-  border-radius: 1rem;
+  border-radius: 1.5rem;
   padding: 3rem;
-  max-width: 400px;
+  width: 100%;
   text-align: center;
+  box-shadow: 0 10px 25px rgba(168, 85, 247, 0.2);
 `;
 
 export const CardTitle = styled.h2`
   font-size: 2rem;
   font-weight: 700;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 `;
 
 export const CardText = styled.p`
-  font-size: 1rem;
-  line-height: 1.5;
+  font-size: 1.1rem;
+  line-height: 1.6;
 `;
 
 export const RightSection = styled.div`
-  flex: 1;
+  width: 50%;
+  max-width: 500px;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 2rem;
+  padding: 3rem;
+
+  @media (max-width: 1024px) {
+    padding: 2rem;
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    max-width: 100%;
+  }
 `;
 
 export const LoginCard = styled.div`
   background-color: #2a2a3c;
-  border-radius: 1rem;
-  padding: 2.5rem;
+  border-radius: 1.5rem;
+  padding: 3rem;
   width: 100%;
-  max-width: 400px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease;
+
+  @media (max-width: 480px) {
+    padding: 2rem;
+  }
 `;
 
 export const LoginHeader = styled.h2`
