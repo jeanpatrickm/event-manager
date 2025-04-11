@@ -1,12 +1,12 @@
 import type React from "react";
 import { Container, MainContent, ContentArea, RightSidebar } from "./styles";
 
-import Sidebar from "../../components/Home/Sidebar";
 import Header from "../../components/Home/Header";
 import Banner from "../../components/Home/Banner";
 import Section from "../../components/Home/Section";
 import EventCard from "../../components/Home/Event-Card";
 import Profile from "../../components/Home/Profile";
+import Sidebar from "../../components/CreateEvent/SideBar";
 const HomePage: React.FC = () => {
   // Sample data
   const featuredEvents = [
