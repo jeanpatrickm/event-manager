@@ -21,7 +21,7 @@ export const SectionHeader = styled.div`
 export const SectionTitle = styled.h2`
   font-size: 20px;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--white);
   margin: 0;
 `;
 

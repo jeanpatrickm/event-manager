@@ -4,8 +4,8 @@ import { Link } from "react-router-dom";
 export const Container = styled.div`
   display: flex;
   height: 100vh;
-  background-color: #1e1e2e;
-  color: #ffffff;
+  background-color: var(--background-dark-e);
+  color: var(--white);
 
   .main-content {
     flex: 1;
@@ -23,13 +23,13 @@ export const ContentContainer = styled.div`
 export const BackButton = styled(Link)`
   display: flex;
   align-items: center;
-  color: #a0a0b0;
+  color: var(--user-tag-span);
   text-decoration: none;
   font-size: 14px;
   transition: color 0.2s;
 
   &:hover {
-    color: #ffffff;
+    color: var(--white);
   }
 
   svg {
@@ -52,14 +52,14 @@ export const EventCoverImage = styled.img`
   object-fit: cover;
   border-radius: 12px;
   margin-bottom: 24px;
-  background-color: #2a2a3a;
+  background-color: var(--background-dark-2);
 `;
 
 export const EventTitle = styled.h1`
   font-size: 28px;
   font-weight: 700;
   margin-bottom: 16px;
-  color: #ffffff;
+  color: var(--white);
 `;
 
 export const EventOrganizer = styled.div`
@@ -73,7 +73,7 @@ export const OrganizerAvatar = styled.img`
   height: 40px;
   border-radius: 50%;
   margin-right: 12px;
-  background-color: #3a3a4a;
+  background-color: var(--background-dark-3);
 `;
 
 export const OrganizerInfo = styled.div`
@@ -84,23 +84,23 @@ export const OrganizerInfo = styled.div`
 export const OrganizerName = styled.span`
   font-size: 14px;
   font-weight: 500;
-  color: #ffffff;
+  color: var(--white);
 `;
 
 export const OrganizerTitle = styled.span`
   font-size: 12px;
-  color: #a0a0b0;
+  color: var(--user-tag-span);
 `;
 
 export const EventDescription = styled.p`
   font-size: 16px;
   line-height: 1.6;
-  color: #c4c4d4;
+  color: var(--user-tag-ligth);
   margin-bottom: 24px;
 `;
 
 export const EventInfoSection = styled.section`
-  background-color: #2a2a3a;
+  background-color: var(--background-dark-2);
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 24px;
@@ -126,7 +126,7 @@ export const InfoLabel = styled.div`
   display: flex;
   align-items: center;
   font-size: 14px;
-  color: #a0a0b0;
+  color: var(--user-tag-span);
   margin-bottom: 6px;
 
   svg {
@@ -137,7 +137,7 @@ export const InfoLabel = styled.div`
 export const InfoValue = styled.div`
   font-size: 16px;
   font-weight: 500;
-  color: #ffffff;
+  color: var(--white);
 `;
 
 export const TagsContainer = styled.div`
@@ -149,10 +149,10 @@ export const TagsContainer = styled.div`
 
 export const TagItem = styled.div`
   padding: 6px 12px;
-  background-color: #3a3a4a;
+  background-color: var(--background-dark-3);
   border-radius: 20px;
   font-size: 12px;
-  color: #c4c4d4;
+  color: var(--user-tag-ligth);
 `;
 
 export const ActionButtonsContainer = styled.div`
@@ -163,8 +163,8 @@ export const ActionButtonsContainer = styled.div`
 
 export const JoinEventButton = styled.button<{ $joined: boolean }>`
   padding: 10px 20px;
-  background-color: ${(props) => (props.$joined ? "#22c55e" : "#8a5cf6")};
-  color: #ffffff;
+  background-color: ${(props) => (props.$joined ? "#22c55e" : " var(--logo-text)")};
+  color: var(--white);
   border: none;
   border-radius: 6px;
   font-weight: 500;
@@ -172,11 +172,11 @@ export const JoinEventButton = styled.button<{ $joined: boolean }>`
   transition: all 0.2s;
 
   &:hover {
-    background-color: ${(props) => (props.$joined ? "#16a34a" : "#7349e3")};
+    background-color: ${(props) => (props.$joined ? "#16a34a" : "var(--color-azul-roxo)")};
   }
 
   &:disabled {
-    background-color: #4a4a5a;
+    background-color: var(--color-dark-grey-text);
     cursor: not-allowed;
   }
 `;
@@ -186,22 +186,22 @@ export const ActionButton = styled.button<{ $active?: boolean }>`
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  background-color: ${(props) => (props.$active ? "#3a3a4a" : "transparent")};
-  color: ${(props) => (props.$active ? "#ffffff" : "#a0a0b0")};
-  border: 1px solid #4a4a5a;
+  background-color: ${(props) => (props.$active ? "var(--background-dark-3)" : "transparent")};
+  color: ${(props) => (props.$active ? "var(--white)" : "var(--user-tag-span)")};
+  border: 1px solid var(--color-dark-grey-text);
   border-radius: 6px;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s;
 
   &:hover {
-    background-color: #3a3a4a;
-    color: #ffffff;
+    background-color: var(--background-dark-3);
+    color: var(--white);
   }
 `;
 
 export const ParticipantsSection = styled.section`
-  background-color: #2a2a3a;
+  background-color: var(--background-dark-2);
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 24px;
@@ -216,12 +216,12 @@ export const ParticipantsHeader = styled.div`
   h3 {
     font-size: 18px;
     font-weight: 600;
-    color: #ffffff;
+    color: var(--white);
   }
 
   a {
     font-size: 14px;
-    color: #8a5cf6;
+    color:  var(--logo-text);
     text-decoration: none;
 
     &:hover {
@@ -252,17 +252,17 @@ export const ParticipantAvatar = styled.img`
   height: 50px;
   border-radius: 50%;
   object-fit: cover;
-  background-color: #3a3a4a;
+  background-color: var(--background-dark-3);
 `;
 
 export const ParticipantName = styled.span`
   font-size: 14px;
-  color: #c4c4d4;
+  color: var(--user-tag-ligth);
   text-align: center;
 `;
 
 export const DiscussionSection = styled.section`
-  background-color: #2a2a3a;
+  background-color: var(--background-dark-2);
   border-radius: 12px;
   padding: 24px;
 `;
@@ -276,7 +276,7 @@ export const DiscussionHeader = styled.div`
     gap: 8px;
     font-size: 18px;
     font-weight: 600;
-    color: #ffffff;
+    color: var(--white);
   }
 `;
 
@@ -289,26 +289,26 @@ export const CommentForm = styled.form`
 export const CommentInput = styled.input`
   flex: 1;
   padding: 12px 16px;
-  background-color: #3a3a4a;
-  border: 1px solid #4a4a5a;
+  background-color: var(--background-dark-3);
+  border: 1px solid var(--color-dark-grey-text);
   border-radius: 6px;
-  color: #ffffff;
+  color: var(--white);
   font-size: 14px;
 
   &:focus {
     outline: none;
-    border-color: #8a5cf6;
+    border-color:  var(--logo-text);
   }
 
   &::placeholder {
-    color: #6c6c7c;
+    color: var(--color-grey-text);
   }
 `;
 
 export const CommentButton = styled.button`
   padding: 0 20px;
-  background-color: #8a5cf6;
-  color: #ffffff;
+  background-color:  var(--logo-text);
+  color: var(--white);
   border: none;
   border-radius: 6px;
   font-weight: 500;
@@ -316,7 +316,7 @@ export const CommentButton = styled.button`
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: #7349e3;
+    background-color: var(--color-azul-roxo);
   }
 `;
 
@@ -341,16 +341,16 @@ export const CommentHeader = styled.div`
 export const CommentAuthor = styled.span`
   font-size: 14px;
   font-weight: 500;
-  color: #ffffff;
+  color: var(--white);
 `;
 
 export const CommentTime = styled.span`
   font-size: 12px;
-  color: #6c6c7c;
+  color: var(--color-grey-text);
 `;
 
 export const CommentContent = styled.p`
   font-size: 14px;
   line-height: 1.5;
-  color: #c4c4d4;
+  color: var(--user-tag-ligth);
 `;

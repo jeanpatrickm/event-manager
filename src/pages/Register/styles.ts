@@ -48,7 +48,7 @@ export const Title = styled.h2`
 `;
 
 export const Subtitle = styled.p`
-  color: #6c7293;
+  color: var(--color-grey-text);
   font-size: 14px;
 `;
 
@@ -60,7 +60,7 @@ export const LoginLink = styled.div`
   margin-top: 16px;
   text-align: center;
   font-size: 14px;
-  color: #6c7293;
+  color: var(--color-grey-text);
 `;
 
 export const Link = styled.a`

@@ -1,7 +1,7 @@
 import styled from "styled-components";
 
 export const DiscussionContainer = styled.section`
-  background-color: #2a2a3a;
+  background-color: var(--background-dark-2);
   border-radius: 12px;
   padding: 24px;
 `;
@@ -15,7 +15,7 @@ export const DiscussionHeader = styled.div`
     gap: 8px;
     font-size: 18px;
     font-weight: 600;
-    color: #ffffff;
+    color: var(--white);
   }
 `;
 
@@ -28,26 +28,26 @@ export const CommentForm = styled.form`
 export const CommentInput = styled.input`
   flex: 1;
   padding: 12px 16px;
-  background-color: #3a3a4a;
-  border: 1px solid #4a4a5a;
+  background-color: var(--background-dark-3);
+  border: 1px solid var(--color-dark-grey-text);
   border-radius: 6px;
-  color: #ffffff;
+  color: var(--white);
   font-size: 14px;
 
   &:focus {
     outline: none;
-    border-color: #8a5cf6;
+    border-color:  var(--logo-text);
   }
 
   &::placeholder {
-    color: #6c6c7c;
+    color: var(--color-grey-text);
   }
 `;
 
 export const CommentButton = styled.button`
   padding: 0 20px;
-  background-color: #8a5cf6;
-  color: #ffffff;
+  background-color:  var(--logo-text);
+  color: var(--white);
   border: none;
   border-radius: 6px;
   font-weight: 500;
@@ -55,7 +55,7 @@ export const CommentButton = styled.button`
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: #7349e3;
+    background-color: var(--color-azul-roxo);
   }
 `;
 
@@ -75,7 +75,7 @@ export const CommentAvatar = styled.img`
   height: 40px;
   border-radius: 50%;
   object-fit: cover;
-  background-color: #3a3a4a;
+  background-color: var(--background-dark-3);
 `;
 
 export const CommentHeader = styled.div`
@@ -88,16 +88,16 @@ export const CommentHeader = styled.div`
 export const CommentAuthor = styled.span`
   font-size: 14px;
   font-weight: 500;
-  color: #ffffff;
+  color: var(--white);
 `;
 
 export const CommentTime = styled.span`
   font-size: 12px;
-  color: #6c6c7c;
+  color: var(--color-grey-text);
 `;
 
 export const CommentContent = styled.p`
   font-size: 14px;
   line-height: 1.5;
-  color: #c4c4d4;
+  color: var(--user-tag-ligth);
 `;

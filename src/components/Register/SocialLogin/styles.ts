@@ -21,7 +21,7 @@ export const Divider = styled.div`
 
 export const DividerText = styled.span`
   padding: 0 16px;
-  color: #6c7293;
+  color: var(--color-grey-text);
   font-size: 14px;
 `;
 
@@ -43,7 +43,7 @@ export const SocialButtonWrapper = styled.button`
   border: none;
   cursor: pointer;
   transition: background-color 0.3s;
-  color: #6c7293;
+  color: var(--color-grey-text);
 
   &:hover {
     background-color: #2b2b40;

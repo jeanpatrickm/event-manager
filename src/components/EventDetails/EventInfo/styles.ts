@@ -1,7 +1,7 @@
 import styled from "styled-components";
 
 export const InfoSection = styled.section`
-  background-color: #2a2a3a;
+  background-color: var(--background-dark-2);
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 24px;
@@ -27,7 +27,7 @@ export const InfoLabel = styled.div`
   display: flex;
   align-items: center;
   font-size: 14px;
-  color: #a0a0b0;
+  color: var(--user-tag-span);
   margin-bottom: 6px;
 
   svg {
@@ -38,7 +38,7 @@ export const InfoLabel = styled.div`
 export const InfoValue = styled.div`
   font-size: 16px;
   font-weight: 500;
-  color: #ffffff;
+  color: var(--white);
 `;
 
 export const TagsContainer = styled.div`
@@ -50,10 +50,10 @@ export const TagsContainer = styled.div`
 
 export const TagItem = styled.div`
   padding: 6px 12px;
-  background-color: #3a3a4a;
+  background-color: var(--background-dark-3);
   border-radius: 20px;
   font-size: 12px;
-  color: #c4c4d4;
+  color: var(--user-tag-ligth);
 `;
 
 export const ActionButtonsContainer = styled.div`
@@ -64,8 +64,8 @@ export const ActionButtonsContainer = styled.div`
 
 export const JoinEventButton = styled.button<{ $joined: boolean }>`
   padding: 10px 20px;
-  background-color: ${(props) => (props.$joined ? "#22c55e" : "#8a5cf6")};
-  color: #ffffff;
+  background-color: ${(props) => (props.$joined ? "#22c55e" : " var(--logo-text)")};
+  color: var(--white);
   border: none;
   border-radius: 6px;
   font-weight: 500;
@@ -73,11 +73,11 @@ export const JoinEventButton = styled.button<{ $joined: boolean }>`
   transition: all 0.2s;
 
   &:hover {
-    background-color: ${(props) => (props.$joined ? "#16a34a" : "#7349e3")};
+    background-color: ${(props) => (props.$joined ? "#16a34a" : "var(--color-azul-roxo)")};
   }
 
   &:disabled {
-    background-color: #4a4a5a;
+    background-color: var(--color-dark-grey-text);
     cursor: not-allowed;
   }
 `;
@@ -87,16 +87,16 @@ export const ActionButton = styled.button<{ $active?: boolean }>`
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  background-color: ${(props) => (props.$active ? "#3a3a4a" : "transparent")};
-  color: ${(props) => (props.$active ? "#ffffff" : "#a0a0b0")};
-  border: 1px solid #4a4a5a;
+  background-color: ${(props) => (props.$active ? "var(--background-dark-3)" : "transparent")};
+  color: ${(props) => (props.$active ? "var(--white)" : "var(--user-tag-span)")};
+  border: 1px solid var(--color-dark-grey-text);
   border-radius: 6px;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s;
 
   &:hover {
-    background-color: #3a3a4a;
-    color: #ffffff;
+    background-color: var(--background-dark-3);
+    color: var(--white);
   }
 `;

@@ -3,7 +3,7 @@ import styled from "styled-components";
 export const Container = styled.div`
   display: flex;
   height: 100vh;
-  background-color: #1e1e2e;
+  background-color: var(--background-dark-e);
   color: white;
 `;
 
@@ -24,7 +24,7 @@ export const ContentArea = styled.main`
   }
 
   &::-webkit-scrollbar-track {
-    background: #1e1e2e;
+    background: var(--background-dark-e);
   }
 
   &::-webkit-scrollbar-thumb {
@@ -36,7 +36,7 @@ export const ContentArea = styled.main`
 export const RightSidebar = styled.aside`
   width: 220px;
   height: 100vh;
-  background-color: #1e1e2e;
+  background-color: var(--background-dark-e);
   border-left: 1px solid #352f5b;
   overflow-y: auto;
 
@@ -45,7 +45,7 @@ export const RightSidebar = styled.aside`
   }
 
   &::-webkit-scrollbar-track {
-    background: #1e1e2e;
+    background: var(--background-dark-e);
   }
 
   &::-webkit-scrollbar-thumb {

@@ -14,7 +14,7 @@ export const TabItem = styled.button<TabItemProps>`
   padding: 12px 20px;
   background: transparent;
   border: none;
-  color: ${(props) => (props.$active ? "#ffffff" : "#a8a8b3")};
+  color: ${(props) => (props.$active ? "var(--white)" : "#a8a8b3")};
   font-size: 16px;
   font-weight: ${(props) => (props.$active ? "600" : "400")};
   cursor: pointer;
@@ -32,7 +32,7 @@ export const TabItem = styled.button<TabItemProps>`
   }
 
   &:hover {
-    color: ${(props) => (props.$active ? "#ffffff" : "#d1d1d6")};
+    color: ${(props) => (props.$active ? "var(--white)" : "#d1d1d6")};
   }
 `;
 

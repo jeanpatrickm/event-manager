@@ -13,7 +13,7 @@ export const ProfileImage = styled.img`
   height: 100px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #6e3fdc;
+  border: 3px solid var(--color-dark-azul-roxo);
   margin-bottom: 15px;
 `;
 
@@ -46,7 +46,7 @@ export const ProfileSectionTitle = styled.h4`
 `;
 
 export const SeeAllLink = styled.a`
-  color: #6e3fdc;
+  color: var(--color-dark-azul-roxo);
   font-size: 0.8rem;
   text-decoration: none;
   font-weight: normal;

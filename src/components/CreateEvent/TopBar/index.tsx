@@ -1,5 +1,5 @@
 import type React from "react";
-import { Bell, MessageSquare, Settings } from "lucide-react";
+import { Bell, MessageCircle, Settings } from "lucide-react";
 import { Link } from "react-router-dom"; // Importe o Link
 import {
   TopBarContainer,
@@ -36,7 +36,7 @@ const TopBar: React.FC = () => {
         </ActionButton>
 
         <ActionButton>
-          <MessageSquare size={20} />
+          <MessageCircle size={20} />
         </ActionButton>
 
         <ActionButton>

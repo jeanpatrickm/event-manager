@@ -19,3 +19,51 @@ a {
 button {
   cursor: pointer;
 }
+
+:root {
+  --logo-text: #8a5cf6;
+  --logo-text-violeta: #a855f7;
+  --color-dark-azul-roxo: #6e3fdc;
+  --color-azul-roxo: #7349e3;
+
+  --color-primary: #4a90e2;
+  --color-secondary: #7a5cff;
+  --color-accent: #ff6b6b;
+  --color-success: #4caf50;
+  --color-warning: #ff9800;
+  --color-danger: #f44336;
+  
+  /* Tons de cinza/neutros */
+  --color-light: #f8f9fa;
+  --color-light-2: #e9ecef;
+  --color-light-3: #dee2e6;
+
+  --background-dark: #1a1a2a;
+  --background-dark-e: #1e1e2e;
+  --background-dark-2: #2a2a3a;
+  --background-dark-3: #3a3a4a;
+  
+  /* Texto */
+  --color-text-primary: rgba(255, 255, 255, 0.92);
+  --color-text-secondary: rgba(255, 255, 255, 0.6);
+  --color-text-tertiary: rgba(255, 255, 255, 0.38);
+  --color-bg-primary: #1e1e2e;
+  --color-bg-secondary: #2a2a3a;
+  --color-bg-tertiary: #3a3a4a;
+
+  --color-dark-grey-text: #4a4a5a;
+  --color-grey-text: #6c6c7c;
+  --color-ligth-grey-text: #94a3b8;
+  --user-tag-span: #a0a0b0;
+  --user-tag-ligth: #c4c4d4;
+  --white: #ffffff;
+  
+  /* Bordas */
+  --color-border: rgba(255, 255, 255, 0.12);
+  --color-border-hover: rgba(255, 255, 255, 0.24);
+  
+  /* Efeitos */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
