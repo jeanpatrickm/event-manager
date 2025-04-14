@@ -6,8 +6,8 @@ export const TopBarContainer = styled.header`
   align-items: center;
   justify-content: space-between;
   padding: 12px 24px;
-  background-color: #1e1e2e;
-  border-bottom: 1px solid #2a2a3a;
+  background-color: var(--background-dark-e);
+  border-bottom: 1px solid var(--background-dark-2);
 `;
 
 export const SearchContainer = styled.div`
@@ -20,7 +20,7 @@ export const SearchIcon = styled(Search)`
   left: 10px;
   top: 50%;
   transform: translateY(-50%);
-  color: #6c6c7c;
+  color: var(--color-grey-text);
   width: 18px;
   height: 18px;
 `;
@@ -28,19 +28,19 @@ export const SearchIcon = styled(Search)`
 export const SearchInput = styled.input`
   width: 100%;
   padding: 8px 12px 8px 36px;
-  background-color: #2a2a3a;
-  border: 1px solid #3a3a4a;
+  background-color: var(--background-dark-2);
+  border: 1px solid var(--background-dark-3);
   border-radius: 20px;
-  color: #ffffff;
+  color: var(--white);
   font-size: 14px;
 
   &:focus {
     outline: none;
-    border-color: #8a5cf6;
+    border-color:  var(--logo-text);
   }
 
   &::placeholder {
-    color: #6c6c7c;
+    color: var(--color-grey-text);
   }
 `;
 
@@ -53,12 +53,12 @@ export const ActionsContainer = styled.div`
 export const ActionButton = styled.button`
   background: none;
   border: none;
-  color: #a0a0b0;
+  color: var(--user-tag-span);
   cursor: pointer;
   transition: color 0.2s;
 
   &:hover {
-    color: #ffffff;
+    color: var(--white);
   }
 `;
 
@@ -74,7 +74,7 @@ export const UserAvatar = styled.img`
   height: 36px;
   border-radius: 50%;
   object-fit: cover;
-  background-color: #3a3a4a;
+  background-color: var(--background-dark-3);
 `;
 
 export const UserInfo = styled.div`
@@ -85,10 +85,10 @@ export const UserInfo = styled.div`
 export const UserName = styled.span`
   font-size: 14px;
   font-weight: 500;
-  color: #ffffff;
+  color: var(--white);
 `;
 
 export const UserTag = styled.span`
   font-size: 12px;
-  color: #a0a0b0;
+  color: var(--user-tag-span);
 `;

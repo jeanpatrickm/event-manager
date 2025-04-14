@@ -7,8 +7,8 @@ interface InputProps {
 export const Container = styled.div`
   display: flex;
   height: 100vh;
-  background-color: #1e1e2e;
-  color: #ffffff;
+  background-color: var(--background-dark-e);
+  color: var(--white);
 
   .main-content {
     flex: 1;
@@ -21,7 +21,7 @@ export const FormContainer = styled.div`
   max-width: 900px;
   margin: 20px auto;
   padding: 20px;
-  background-color: #2a2a3a;
+  background-color: var(--background-dark-2);
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 `;
@@ -29,13 +29,13 @@ export const FormContainer = styled.div`
 export const Header = styled.div`
   margin-bottom: 24px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #3a3a4a;
+  border-bottom: 1px solid var(--background-dark-3);
 `;
 
 export const Title = styled.h1`
   font-size: 24px;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--white);
 `;
 
 export const FormSection = styled.div`
@@ -59,7 +59,7 @@ export const Label = styled.label`
   margin-bottom: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: #c4c4d4;
+  color: var(--user-tag-ligth);
 
   svg {
     margin-right: 8px;
@@ -69,29 +69,29 @@ export const Label = styled.label`
 export const Input = styled.input<InputProps>`
   width: 100%;
   padding: 10px 12px;
-  background-color: #3a3a4a;
-  border: 1px solid ${(props) => (props.hasError ? "#ff5555" : "#4a4a5a")};
+  background-color: var(--background-dark-3);
+  border: 1px solid ${(props) => (props.hasError ? "#ff5555" : "var(--color-dark-grey-text)")};
   border-radius: 6px;
-  color: #ffffff;
+  color: var(--white);
   font-size: 14px;
   transition: border-color 0.2s;
 
   &:focus {
     outline: none;
-    border-color: ${(props) => (props.hasError ? "#ff5555" : "#8a5cf6")};
+    border-color: ${(props) => (props.hasError ? "#ff5555" : " var(--logo-text)")};
   }
 
   &::placeholder {
-    color: #6c6c7c;
+    color: var(--color-grey-text);
   }
 
   &[type="file"] {
     padding: 8px;
 
     &::file-selector-button {
-      background-color: #3a3a4a;
-      color: #ffffff;
-      border: 1px solid #4a4a5a;
+      background-color: var(--background-dark-3);
+      color: var(--white);
+      border: 1px solid var(--color-dark-grey-text);
       border-radius: 4px;
       padding: 6px 12px;
       margin-right: 12px;
@@ -99,7 +99,7 @@ export const Input = styled.input<InputProps>`
       transition: background-color 0.2s;
 
       &:hover {
-        background-color: #4a4a5a;
+        background-color: var(--color-dark-grey-text);
       }
     }
   }
@@ -125,14 +125,14 @@ export const Button = styled.button<{ variant: "primary" | "secondary" }>`
   transition: all 0.2s;
 
   background-color: ${(props) =>
-    props.variant === "primary" ? "#8a5cf6" : "transparent"};
-  color: ${(props) => (props.variant === "primary" ? "#ffffff" : "#c4c4d4")};
+    props.variant === "primary" ? " var(--logo-text)" : "transparent"};
+  color: ${(props) => (props.variant === "primary" ? "var(--white)" : "var(--user-tag-ligth)")};
   border: ${(props) =>
-    props.variant === "primary" ? "none" : "1px solid #4a4a5a"};
+    props.variant === "primary" ? "none" : "1px solid var(--color-dark-grey-text)"};
 
   &:hover {
     background-color: ${(props) =>
-      props.variant === "primary" ? "#7349e3" : "#3a3a4a"};
+      props.variant === "primary" ? "var(--color-azul-roxo)" : "var(--background-dark-3)"};
   }
 
   &:active {
@@ -162,7 +162,7 @@ export const RemoveImageButton = styled.button`
   height: 24px;
   border-radius: 50%;
   background-color: rgba(0, 0, 0, 0.6);
-  color: #ffffff;
+  color: var(--white);
   border: none;
   display: flex;
   align-items: center;
@@ -187,7 +187,7 @@ export const TagItem = styled.div`
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
-  background-color: #3a3a4a;
+  background-color: var(--background-dark-3);
   border-radius: 16px;
   font-size: 12px;
 
@@ -225,7 +225,7 @@ export const RadioOption = styled.div`
 
 export const RadioInput = styled.input`
   margin-right: 8px;
-  accent-color: #8a5cf6;
+  accent-color:  var(--logo-text);
 `;
 
 export const RadioLabel = styled.label`
@@ -233,6 +233,6 @@ export const RadioLabel = styled.label`
   align-items: center;
   gap: 6px;
   font-size: 14px;
-  color: #c4c4d4;
+  color: var(--user-tag-ligth);
   cursor: pointer;
 `;

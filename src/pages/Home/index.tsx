@@ -164,14 +164,14 @@ const HomePage: React.FC = () => {
         </ContentArea>
       </MainContent>
 
-      <RightSidebar>
+      {/* <RightSidebar>
         <Profile
           name="J a y"
           username="@Jay"
           image="/images/aaa.jpg?height=200&width=200"
           newMembers={newMembers}
         />
-      </RightSidebar>
+      </RightSidebar> */}
     </Container>
   );
 };

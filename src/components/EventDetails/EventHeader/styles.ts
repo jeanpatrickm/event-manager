@@ -11,13 +11,13 @@ export const HeaderContainer = styled.div`
 export const BackButton = styled(Link)`
   display: flex;
   align-items: center;
-  color: #a0a0b0;
+  color: var(--user-tag-span);
   text-decoration: none;
   font-size: 14px;
   transition: color 0.2s;
 
   &:hover {
-    color: #ffffff;
+    color: var(--white);
   }
 
   svg {

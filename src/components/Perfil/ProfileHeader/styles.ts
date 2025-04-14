@@ -50,7 +50,7 @@ export const ProfileAvatar = styled.img`
 export const ProfileName = styled.h1`
   font-size: 24px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--white);
   margin: 0;
   margin-top: 50px;
 `;
@@ -76,7 +76,7 @@ export const StatItem = styled.div`
 export const StatValue = styled.span`
   font-size: 18px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--white);
 `;
 
 export const StatLabel = styled.span`

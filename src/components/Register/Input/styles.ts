@@ -28,7 +28,7 @@ export const IconWrapper = styled.div`
   align-items: center;
   justify-content: center;
   padding: 0 12px;
-  color: #6c7293;
+  color: var(--color-grey-text);
 `;
 
 export const StyledInput = styled.input`
@@ -41,7 +41,7 @@ export const StyledInput = styled.input`
   outline: none;
 
   &::placeholder {
-    color: #6c7293;
+    color: var(--color-grey-text);
   }
 `;
 
@@ -49,7 +49,7 @@ export const PasswordToggle = styled.div`
   position: absolute;
   right: 12px;
   cursor: pointer;
-  color: #6c7293;
+  color: var(--color-grey-text);
   display: flex;
   align-items: center;
 `;

@@ -19,7 +19,7 @@ export const SectionTitle = styled.h2`
 `;
 
 export const ViewAllLink = styled.a`
-  color: #6e3fdc;
+  color: var(--color-dark-azul-roxo);
   font-size: 0.9rem;
   text-decoration: none;
 

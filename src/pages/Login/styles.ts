@@ -4,7 +4,7 @@ import styled from "styled-components";
 export const Container = styled.div`
   display: flex;
   min-height: 100vh;
-  background-color: #1e1e2e;
+  background-color: var(--background-dark-e);
   color: #fff;
   font-family: "Inter", sans-serif;
   align-items: center;
@@ -33,13 +33,13 @@ export const LeftSection = styled.div`
 export const Logo = styled.h1`
   font-size: 2.5rem;
   font-weight: 700;
-  color: #a855f7;
+  color:  var(--logo-text-violeta);
   margin-bottom: 3rem;
   align-self: flex-start;
 `;
 
 export const GradientCard = styled.div`
-  background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+  background: linear-gradient(135deg,  var(--logo-text-violeta) 0%, #6366f1 100%);
   border-radius: 1.5rem;
   padding: 3rem;
   width: 100%;
@@ -96,7 +96,7 @@ export const LoginHeader = styled.h2`
 `;
 
 export const LoginSubtitle = styled.p`
-  color: #94a3b8;
+  color: var(--color-ligth-grey-text);
   margin-bottom: 2rem;
 `;
 
@@ -127,13 +127,13 @@ export const InputWrapper = styled.div`
 export const IconWrapper = styled.div`
   position: absolute;
   left: 1rem;
-  color: #94a3b8;
+  color: var(--color-ligth-grey-text);
 `;
 
 export const Input = styled.input`
   width: 100%;
   padding: 0.75rem 1rem 0.75rem 2.5rem;
-  background-color: #1e1e2e;
+  background-color: var(--background-dark-e);
   border: 1px solid #3f3f5a;
   border-radius: 0.5rem;
   color: #fff;
@@ -141,7 +141,7 @@ export const Input = styled.input`
 
   &:focus {
     outline: none;
-    border-color: #a855f7;
+    border-color:  var(--logo-text-violeta);
   }
 
   &::placeholder {
@@ -154,7 +154,7 @@ export const PasswordToggle = styled.button`
   right: 1rem;
   background: none;
   border: none;
-  color: #94a3b8;
+  color: var(--color-ligth-grey-text);
   cursor: pointer;
 `;
 
@@ -171,19 +171,19 @@ export const CheckboxWrapper = styled.div`
 `;
 
 export const Checkbox = styled.input`
-  accent-color: #a855f7;
+  accent-color:  var(--logo-text-violeta);
   width: 1rem;
   height: 1rem;
 `;
 
 export const CheckboxLabel = styled.label`
   font-size: 0.875rem;
-  color: #94a3b8;
+  color: var(--color-ligth-grey-text);
 `;
 
 export const ForgotPassword = styled.a`
   font-size: 0.875rem;
-  color: #a855f7;
+  color:  var(--logo-text-violeta);
   text-decoration: none;
 
   &:hover {
@@ -192,7 +192,7 @@ export const ForgotPassword = styled.a`
 `;
 
 export const SubmitButton = styled.button`
-  background-color: #a855f7;
+  background-color:  var(--logo-text-violeta);
   color: #fff;
   font-weight: 600;
   padding: 0.75rem;
@@ -209,13 +209,13 @@ export const SubmitButton = styled.button`
 // Cadastro e login social
 export const SignupText = styled.p`
   font-size: 0.875rem;
-  color: #94a3b8;
+  color: var(--color-ligth-grey-text);
   text-align: center;
   margin-bottom: 1.5rem;
 `;
 
 export const SignupLink = styled.a`
-  color: #a855f7;
+  color:  var(--logo-text-violeta);
   text-decoration: none;
 
   &:hover {
@@ -234,7 +234,7 @@ export const SocialDivider = styled.div`
   position: relative;
   width: 100%;
   text-align: center;
-  color: #94a3b8;
+  color: var(--color-ligth-grey-text);
   font-size: 0.875rem;
 
   &::before,
@@ -268,7 +268,7 @@ export const SocialButton = styled.button`
   align-items: center;
   width: 2.5rem;
   height: 2.5rem;
-  background-color: #1e1e2e;
+  background-color: var(--background-dark-e);
   border: 1px solid #3f3f5a;
   border-radius: 50%;
   cursor: pointer;

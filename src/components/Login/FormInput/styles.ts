@@ -9,13 +9,13 @@ export const InputWrapper = styled.div`
 export const IconWrapper = styled.div`
   position: absolute;
   left: 1rem;
-  color: #94a3b8;
+  color: var(--color-ligth-grey-text);
 `;
 
 export const Input = styled.input`
   width: 100%;
   padding: 0.75rem 1rem 0.75rem 2.5rem;
-  background-color: #1e1e2e;
+  background-color: var(--background-dark-e);
   border: 1px solid #3f3f5a;
   border-radius: 0.5rem;
   color: #fff;
@@ -23,7 +23,7 @@ export const Input = styled.input`
 
   &:focus {
     outline: none;
-    border-color: #a855f7;
+    border-color:  var(--logo-text-violeta);
   }
 
   &::placeholder {

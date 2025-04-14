@@ -24,7 +24,7 @@ export const EventContent = styled.div`
 export const EventTitle = styled.h3`
   font-size: 18px;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--white);
   margin: 0 0 8px 0;
 `;
 

@@ -1,7 +1,7 @@
 import styled from "styled-components";
 
 export const ParticipantsContainer = styled.section`
-  background-color: #2a2a3a;
+  background-color: var(--background-dark-2);
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 24px;
@@ -16,12 +16,12 @@ export const ParticipantsHeader = styled.div`
   h3 {
     font-size: 18px;
     font-weight: 600;
-    color: #ffffff;
+    color: var(--white);
   }
 
   a {
     font-size: 14px;
-    color: #8a5cf6;
+    color:  var(--logo-text);
     text-decoration: none;
 
     &:hover {
@@ -52,11 +52,11 @@ export const ParticipantAvatar = styled.img`
   height: 50px;
   border-radius: 50%;
   object-fit: cover;
-  background-color: #3a3a4a;
+  background-color: var(--background-dark-3);
 `;
 
 export const ParticipantName = styled.span`
   font-size: 14px;
-  color: #c4c4d4;
+  color: var(--user-tag-ligth);
   text-align: center;
 `;

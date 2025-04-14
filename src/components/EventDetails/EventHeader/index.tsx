@@ -24,7 +24,7 @@ const EventHeader: React.FC<EventHeaderProps> = ({ status }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "upcoming":
-        return "#8a5cf6"; // Roxo
+        return " var(--logo-text)"; // Roxo
       case "ongoing":
         return "#22c55e"; // Verde
       case "past":
