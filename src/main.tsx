@@ -1,13 +1,15 @@
 import "./styles/globals.css";
-import { StrictMode } from "react";
+import { ReactNode, StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
 import Home from "./pages/Home";
 import LoginPage from "./pages/Login";
 import ProfilePage from "./pages/Profile";
 import CreateEvent from "./pages/CreateEvent";
 import EventDetails from "./pages/EventDetails";
 import Register from "./pages/Register";
+import ProtectedRoute from "./components/Auth/ProtectedRoute";
+
 
 const router = createBrowserRouter([
   {
@@ -20,11 +22,11 @@ const router = createBrowserRouter([
   },
   {
     path: "/profile",
-    element: <ProfilePage />,
+    element: <ProtectedRoute><ProfilePage /></ProtectedRoute>,
   },
   {
     path: "/create-event",
-    element: <CreateEvent />,
+    element: <ProtectedRoute><CreateEvent /></ProtectedRoute>,
   },
   {
     path: "/Event-Details",
