@@ -35,18 +35,38 @@ import {
   SocialButton,
 } from "./styles";
 import SocialIcons from "../../components/Login/SocialIcons";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "../../lib/supabase";
 
 const LoginPage: React.FC = () => {
+  const [isLoading, setIsLoading] = useState(false)
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+
+  async function siggnInUser(email: string, password: string) {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password,
+    })
+    if (error != null) throw error
+    return data
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Implementar lógica de autenticação aqui
-    console.log({ email, password, rememberMe });
+    setIsLoading(true)
+    siggnInUser(email, password).then(data => {
+      console.log(data)
+      navigate("/")
+    }).catch(e => {
+      console.error(e)
+    }).finally(() => {
+      setIsLoading(false)
+    })
+
   };
 
   return (
@@ -118,7 +138,7 @@ const LoginPage: React.FC = () => {
               <ForgotPassword href="#">Esqueceu a senha?</ForgotPassword>
             </RememberForgotRow>
 
-            <SubmitButton type="submit">Entrar</SubmitButton>
+            <SubmitButton type="submit" disabled={isLoading}>Entrar</SubmitButton>
           </Form>
 
           <SignupText>
