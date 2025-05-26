@@ -196,6 +196,7 @@ const CreateEvent: React.FC = () => {
     try {
       // 1. Upload da imagem de capa (se existir)
       let imageUrl = null;
+
       if (formData.coverImage) {
         const fileExt = formData.coverImage.name.split(".").pop();
         const fileName = `${Math.random()}.${fileExt}`;
@@ -218,6 +219,7 @@ const CreateEvent: React.FC = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
+
       if (!user) throw new Error("Usuário não autenticado");
 
       // 3. Mapear categoria para cod_categoria (exemplo básico)
