@@ -4,18 +4,22 @@ import { Navigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
-  const [isLoading, setIsLoading] = useState(true)
-  const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(u => {
-      const { data, error } = u
-      if (error) {
-        throw error
-      }
-      setUser(data.user)
-    }).catch(e => console.error(e)).finally(() => setIsLoading(false))
-  }, [])
+    supabase.auth
+      .getUser()
+      .then((u) => {
+        const { data, error } = u;
+        if (error) {
+          throw error;
+        }
+        setUser(data.user);
+      })
+      .catch((e) => console.error(e))
+      .finally(() => setIsLoading(false));
+  }, []);
 
   if (isLoading) {
     return <div>Loading...</div>;

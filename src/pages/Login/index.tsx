@@ -39,34 +39,40 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 
 const LoginPage: React.FC = () => {
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null); // Novo estado para erros
   const navigate = useNavigate();
 
-  async function siggnInUser(email: string, password: string) {
+  async function signInUser(email: string, password: string) {
     const { data, error } = await supabase.auth.signInWithPassword({
       email: email,
       password: password,
-    })
-    if (error != null) throw error
-    return data
+    });
+    if (error) throw error;
+    return data;
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true)
-    siggnInUser(email, password).then(data => {
-      console.log(data)
-      navigate("/")
-    }).catch(e => {
-      console.error(e)
-    }).finally(() => {
-      setIsLoading(false)
-    })
+    setIsLoading(true);
+    setLoginError(null); // Limpa qualquer erro anterior
 
+    signInUser(email, password)
+      .then((data) => {
+        console.log("Login bem-sucedido:", data);
+        navigate("/");
+      })
+      .catch((error) => {
+        console.error("Erro ao fazer login:", error);
+        setLoginError(error.message || "Ocorreu um erro ao fazer login."); // Exibe a mensagem de erro
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
   return (
@@ -102,7 +108,6 @@ const LoginPage: React.FC = () => {
                 />
               </InputWrapper>
             </FormGroup>
-
             <FormGroup>
               <Label>Senha</Label>
               <InputWrapper>
@@ -124,7 +129,6 @@ const LoginPage: React.FC = () => {
                 </PasswordToggle>
               </InputWrapper>
             </FormGroup>
-
             <RememberForgotRow>
               <CheckboxWrapper>
                 <Checkbox
@@ -137,8 +141,11 @@ const LoginPage: React.FC = () => {
               </CheckboxWrapper>
               <ForgotPassword href="#">Esqueceu a senha?</ForgotPassword>
             </RememberForgotRow>
-
-            <SubmitButton type="submit" disabled={isLoading}>Entrar</SubmitButton>
+            {loginError && <p style={{ color: "red" }}>{loginError}</p>}{" "}
+            {/* Exibe a mensagem de erro */}
+            <SubmitButton type="submit" disabled={isLoading}>
+              Entrar
+            </SubmitButton>
           </Form>
 
           <SignupText>

@@ -70,7 +70,8 @@ export const Input = styled.input<InputProps>`
   width: 100%;
   padding: 10px 12px;
   background-color: var(--background-dark-3);
-  border: 1px solid ${(props) => (props.hasError ? "#ff5555" : "var(--color-dark-grey-text)")};
+  border: 1px solid
+    ${(props) => (props.hasError ? "#ff5555" : "var(--color-dark-grey-text)")};
   border-radius: 6px;
   color: var(--white);
   font-size: 14px;
@@ -78,7 +79,8 @@ export const Input = styled.input<InputProps>`
 
   &:focus {
     outline: none;
-    border-color: ${(props) => (props.hasError ? "#ff5555" : " var(--logo-text)")};
+    border-color: ${(props) =>
+      props.hasError ? "#ff5555" : " var(--logo-text)"};
   }
 
   &::placeholder {
@@ -126,13 +128,18 @@ export const Button = styled.button<{ variant: "primary" | "secondary" }>`
 
   background-color: ${(props) =>
     props.variant === "primary" ? " var(--logo-text)" : "transparent"};
-  color: ${(props) => (props.variant === "primary" ? "var(--white)" : "var(--user-tag-ligth)")};
+  color: ${(props) =>
+    props.variant === "primary" ? "var(--white)" : "var(--user-tag-ligth)"};
   border: ${(props) =>
-    props.variant === "primary" ? "none" : "1px solid var(--color-dark-grey-text)"};
+    props.variant === "primary"
+      ? "none"
+      : "1px solid var(--color-dark-grey-text)"};
 
   &:hover {
     background-color: ${(props) =>
-      props.variant === "primary" ? "var(--color-azul-roxo)" : "var(--background-dark-3)"};
+      props.variant === "primary"
+        ? "var(--color-azul-roxo)"
+        : "var(--background-dark-3)"};
   }
 
   &:active {
@@ -225,7 +232,7 @@ export const RadioOption = styled.div`
 
 export const RadioInput = styled.input`
   margin-right: 8px;
-  accent-color:  var(--logo-text);
+  accent-color: var(--logo-text);
 `;
 
 export const RadioLabel = styled.label`
