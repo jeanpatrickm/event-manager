@@ -43,6 +43,7 @@ import {
 } from "./styles";
 import Sidebar from "../../components/CreateEvent/SideBar";
 import TopBar from "../../components/CreateEvent/TopBar";
+import { supabase } from "../../lib/supabase";
 
 interface FormData {
   title: string;
@@ -185,17 +186,109 @@ const CreateEvent: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (validateForm()) {
-      // Aqui você enviaria os dados para a API
-      console.log("Dados do formulário:", formData);
-      // Redirecionar ou mostrar mensagem de sucesso
+    if (!validateForm()) {
+      return;
+    }
+
+    try {
+      // 1. Upload da imagem de capa (se existir)
+      let imageUrl = null;
+      if (formData.coverImage) {
+        const fileExt = formData.coverImage.name.split(".").pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `event_covers/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("event-images")
+          .upload(filePath, formData.coverImage);
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from("event-images")
+          .getPublicUrl(filePath);
+
+        imageUrl = urlData.publicUrl;
+      }
+
+      // 2. Obter o ID do usuário logado
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado");
+
+      // 3. Mapear categoria para cod_categoria (exemplo básico)
+      const categoryMap: Record<string, number> = {
+        game: 1,
+        art: 2,
+        nft: 3,
+        vr: 4,
+        other: 5,
+      };
+
+      // dados para inserção
+      const eventData = {
+        titulo: formData.title,
+        descricao: formData.description,
+        data_evento: formData.date,
+        horario: `${formData.date}T${formData.time}:00`,
+        local: formData.eventMode === "in-person" ? formData.location : null,
+        publico: formData.eventType === "public",
+        presencial: formData.eventMode === "in-person",
+        max_participantes: formData.maxParticipants
+          ? Number(formData.maxParticipants)
+          : null,
+        cod_categoria: formData.category
+          ? categoryMap[formData.category]
+          : null,
+        categoria: formData.category || null,
+        tags: formData.tags.length > 0 ? formData.tags.join(", ") : null,
+        nome_organizador: formData.organizerName,
+        image_capa: imageUrl,
+        link_online:
+          formData.eventMode === "online"
+            ? formData.onlineLink || formData.onlinePlatform
+            : null,
+        user_id: user.id,
+      };
+
+      //  insert no Supabase
+      const { data, error } = await supabase
+        .from("eventos")
+        .insert([eventData])
+        .select();
+
+      if (error) throw error;
+
+      console.log("Evento criado com sucesso:", data);
       alert("Evento criado com sucesso!");
+
+      // Limpar o formulário após sucesso
+      setFormData({
+        title: "",
+        description: "",
+        date: "",
+        time: "",
+        location: "",
+        maxParticipants: "",
+        category: "",
+        tags: [],
+        coverImage: null,
+        organizerName: "",
+        eventType: "public",
+        eventMode: "in-person",
+        onlinePlatform: "",
+        onlineLink: "",
+      });
+      setImagePreview(null);
+    } catch (error) {
+      console.error("Erro ao criar evento:", error);
+      alert(`Erro ao criar evento: ${error.message}`);
     }
   };
-
   const handleCancel = () => {
     // Redirecionar para a página anterior ou home
     if (
