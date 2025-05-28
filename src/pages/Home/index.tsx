@@ -1,5 +1,6 @@
 import type React from "react";
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Container, MainContent, ContentArea } from "./styles";
 import { supabase } from "../../lib/supabase"; // Importe o cliente do Supabase
 
@@ -18,7 +19,6 @@ interface Event {
   data_evento: string;
   horario: string;
   max_participantes: number | null;
-  // Adicione outros campos conforme necessário
 }
 
 const HomePage: React.FC = () => {
@@ -89,15 +89,21 @@ const HomePage: React.FC = () => {
               <p>Nenhum evento público encontrado.</p>
             ) : (
               publicEvents.map((event) => (
-                <EventCard
+                <Link
                   key={event.id}
-                  title={event.titulo}
-                  description={event.descricao}
-                  image={
-                    event.image_capa || "/placeholder.svg?height=300&width=500"
-                  }
-                  memberCount={event.max_participantes || undefined}
-                />
+                  to="/event-details"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                >
+                  <EventCard
+                    title={event.titulo}
+                    description={event.descricao}
+                    image={
+                      event.image_capa ||
+                      "/placeholder.svg?height=300&width=500"
+                    }
+                    memberCount={event.max_participantes || undefined}
+                  />
+                </Link>
               ))
             )}
           </Section>
@@ -105,13 +111,18 @@ const HomePage: React.FC = () => {
           {/* Seção de Meus Eventos (mantida com dados mockados por enquanto) */}
           <Section title="Meus Eventos">
             {myEvents.map((event) => (
-              <EventCard
+              <Link
                 key={event.id}
-                title={event.title}
-                description={event.description}
-                image={event.image}
-                memberCount={event.memberCount}
-              />
+                to="/event-details"
+                style={{ textDecoration: "none", color: "inherit" }}
+              >
+                <EventCard
+                  title={event.title}
+                  description={event.description}
+                  image={event.image}
+                  memberCount={event.memberCount}
+                />
+              </Link>
             ))}
           </Section>
         </ContentArea>

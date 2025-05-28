@@ -10,6 +10,8 @@ import {
 import ProfileHeader from "../../components/Perfil/ProfileHeader";
 import EventCard from "../../components/Perfil/EventCard";
 import TabNavigation from "../../components/Perfil/TabNavigation";
+import { Container } from "../Home/styles";
+import Sidebar from "../../components/CreateEvent/SideBar";
 
 const ProfilePage: React.FC = () => {
   // Mock data
@@ -134,19 +136,22 @@ const ProfilePage: React.FC = () => {
   ];
 
   return (
-    <ProfileContainer>
-      <ProfileHeader
-        username={profileData.username}
-        displayName={profileData.displayName}
-        avatarUrl={profileData.avatarUrl}
-        bannerUrl={profileData.bannerUrl}
-        events={profileData.events}
-      />
+    <Container>
+      <Sidebar />
+      <ProfileContainer>
+        <ProfileHeader
+          username={profileData.username}
+          displayName={profileData.displayName}
+          avatarUrl={profileData.avatarUrl}
+          bannerUrl={profileData.bannerUrl}
+          events={profileData.events}
+        />
 
-      <ProfileContent>
-        <TabNavigation tabs={tabs} defaultTab="created" />
-      </ProfileContent>
-    </ProfileContainer>
+        <ProfileContent>
+          <TabNavigation tabs={tabs} defaultTab="created" />
+        </ProfileContent>
+      </ProfileContainer>
+    </Container>
   );
 };
 

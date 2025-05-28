@@ -3,12 +3,11 @@ import { Home, Calendar, Users } from "lucide-react";
 import {
   SidebarContainer,
   Logo,
-  LogoText,
   NavList,
   NavItem,
   NavLink,
   NavText,
-  Row
+  Row,
 } from "./styles";
 import {
   UserContainer,
@@ -16,11 +15,10 @@ import {
   // UserInfo,
   // UserName,
   // UserTag
-} from "./styles";//from "../TopBar/styles"
+} from "./styles"; //from "../TopBar/styles"
 import { Link } from "react-router-dom";
 
 const Sidebar: React.FC = () => {
-
   // Dados do usuário (você pode receber via props ou contexto)
   const currentUser = {
     username: "jay",
@@ -47,9 +45,10 @@ const Sidebar: React.FC = () => {
         </Link>
 
         <Logo>
-          <Link to="/" style={{ textDecoration: "none", color: "inherit" }}>
-            <LogoText>Explorar</LogoText>
-          </Link>
+          <Link
+            to="/"
+            style={{ textDecoration: "none", color: "inherit" }}
+          ></Link>
         </Logo>
       </Row>
 
