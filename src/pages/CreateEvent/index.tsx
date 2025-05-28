@@ -58,7 +58,6 @@ interface FormData {
   organizerName: string;
   eventType: "public" | "private";
   eventMode: "online" | "in-person";
-  onlinePlatform?: string;
   onlineLink?: string;
 }
 
@@ -86,7 +85,6 @@ const CreateEvent: React.FC = () => {
     organizerName: "",
     eventType: "public",
     eventMode: "in-person",
-    onlinePlatform: "",
     onlineLink: "",
   });
 
@@ -170,7 +168,7 @@ const CreateEvent: React.FC = () => {
       newErrors.time = "Horário é obrigatório";
     }
 
-    if (!formData.location.trim()) {
+    if (formData.eventMode === "in-person" && !formData.location.trim()) {
       newErrors.location = "Localização é obrigatória";
     }
 
@@ -220,7 +218,7 @@ const CreateEvent: React.FC = () => {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
 
-      // 3. Mapear categoria para cod_categoria (exemplo básico)
+      // 3. Mapear categoria para cod_categoria
       const categoryMap: Record<string, number> = {
         game: 1,
         art: 2,
@@ -229,7 +227,7 @@ const CreateEvent: React.FC = () => {
         other: 5,
       };
 
-      // dados para inserção
+      // Dados para inserção
       const eventData = {
         titulo: formData.title,
         descricao: formData.description,
@@ -249,13 +247,13 @@ const CreateEvent: React.FC = () => {
         nome_organizador: formData.organizerName,
         image_capa: imageUrl,
         link_online:
-          formData.eventMode === "online"
-            ? formData.onlineLink || formData.onlinePlatform
+          formData.eventMode === "online" && formData.onlineLink?.trim()
+            ? formData.onlineLink
             : null,
         user_id: user.id,
       };
 
-      //  insert no Supabase
+      // Inserção no Supabase
       const { data, error } = await supabase
         .from("eventos")
         .insert([eventData])
@@ -266,7 +264,7 @@ const CreateEvent: React.FC = () => {
       console.log("Evento criado com sucesso:", data);
       alert("Evento criado com sucesso!");
 
-      // Limpar o formulário após sucesso
+      // Limpa o formulário
       setFormData({
         title: "",
         description: "",
@@ -280,7 +278,6 @@ const CreateEvent: React.FC = () => {
         organizerName: "",
         eventType: "public",
         eventMode: "in-person",
-        onlinePlatform: "",
         onlineLink: "",
       });
       setImagePreview(null);
@@ -289,8 +286,8 @@ const CreateEvent: React.FC = () => {
       alert(`Erro ao criar evento: ${error.message}`);
     }
   };
+
   const handleCancel = () => {
-    // Redirecionar para a página anterior ou home
     if (
       window.confirm(
         "Deseja cancelar a criação do evento? Todas as informações serão perdidas."
@@ -437,37 +434,25 @@ const CreateEvent: React.FC = () => {
                   </RadioOption>
                 </RadioGroup>
 
-                {/* Campos condicionais para eventos online */}
+                {/* Campo para link do evento online */}
                 {formData.eventMode === "online" && (
-                  <>
+                  <InputGroup>
+                    <Label htmlFor="onlineLink">
+                      <Monitor size={16} />
+                      Link do Evento Online*
+                    </Label>
                     <Input
-                      as="select"
-                      name="onlinePlatform"
-                      value={formData.onlinePlatform}
-                      onChange={handleInputChange}
-                      style={{ marginTop: "12px" }}
-                    >
-                      <option value="">Selecione a plataforma</option>
-                      <option value="discord">Discord</option>
-                      <option value="zoom">Zoom</option>
-                      <option value="teams">Microsoft Teams</option>
-                      <option value="skype">Skype</option>
-                      <option value="google-meet">Google Meet</option>
-                      <option value="other">Outra plataforma</option>
-                    </Input>
-
-                    <Input
+                      id="onlineLink"
                       name="onlineLink"
                       value={formData.onlineLink || ""}
                       onChange={handleInputChange}
-                      placeholder="Link para participar do evento"
-                      style={{ marginTop: "12px" }}
+                      placeholder="Insira o link para participar do evento (ex.: Zoom, Meet, Discord)"
                       hasError={!!errors.onlineLink}
                     />
                     {errors.onlineLink && (
                       <ErrorMessage>{errors.onlineLink}</ErrorMessage>
                     )}
-                  </>
+                  </InputGroup>
                 )}
               </InputGroup>
             </FormSection>

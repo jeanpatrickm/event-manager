@@ -1,83 +1,60 @@
 import type React from "react";
-import { Container, MainContent, ContentArea, RightSidebar } from "./styles";
+import { useState, useEffect } from "react";
+import { Container, MainContent, ContentArea } from "./styles";
+import { supabase } from "../../lib/supabase"; // Importe o cliente do Supabase
 
 import Header from "../../components/Home/Header";
 import Banner from "../../components/Home/Banner";
 import Section from "../../components/Home/Section";
 import EventCard from "../../components/Home/Event-Card";
-import Profile from "../../components/Home/Profile";
 import Sidebar from "../../components/CreateEvent/SideBar";
-const HomePage: React.FC = () => {
-  // Sample data
-  const featuredEvents = [
-    {
-      id: "1",
-      title: "Virtual Reality",
-      description:
-        "A community for VR and novices alike, regular and friendly chat.",
-      image: "/images/virtual_reality.jpg?height=200&width=200",
-      onlineCount: 5678,
-      memberCount: 345678,
-    },
-    {
-      id: "2",
-      title: "Game Play",
-      description: "Always a new challenge. Great place to make new friends.",
-      image: "/images/gameplay.jpg?height=200&width=200",
-      onlineCount: 18201,
-      memberCount: 327453,
-    },
-    {
-      id: "3",
-      title: "Game Play",
-      description: "Always a new challenge. Great place to make new friends.",
-      image: "/placeholder.svg?height=300&width=500",
-      onlineCount: 18201,
-      memberCount: 327453,
-    },
-    {
-      id: "4",
-      title: "Game Play",
-      description: "Always a new challenge. Great place to make new friends.",
-      image: "/placeholder.svg?height=300&width=500",
-      onlineCount: 18201,
-      memberCount: 327453,
-    },
-    {
-      id: "5",
-      title: "Game Play",
-      description: "Always a new challenge. Great place to make new friends.",
-      image: "/placeholder.svg?height=300&width=500",
-      onlineCount: 18201,
-      memberCount: 327453,
-    },
-    {
-      id: "6",
-      title: "testetitle",
-      description: "aula de teste",
-      image: "/placeholder.svg?height=300&width=500",
-      onlineCount: 18201,
-      memberCount: 327453,
-    },
-    {
-      id: "7",
-      title: "testetitle",
-      description: "aula de teste",
-      image: "/placeholder.svg?height=300&width=500",
-      onlineCount: 18201,
-      memberCount: 327453,
-    },
-    {
-      id: "8",
-      title: "testetitle",
-      description: "aula de teste",
-      image: "/placeholder.svg?height=300&width=500",
-      onlineCount: 18201,
-      memberCount: 327453,
-    },
-  ];
 
-  const popularEvents = [
+interface Event {
+  id: string;
+  titulo: string;
+  descricao: string;
+  image_capa: string | null;
+  publico: boolean;
+  data_evento: string;
+  horario: string;
+  max_participantes: number | null;
+  // Adicione outros campos conforme necessário
+}
+
+const HomePage: React.FC = () => {
+  const [publicEvents, setPublicEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Busca os eventos públicos ao carregar o componente
+  useEffect(() => {
+    const fetchPublicEvents = async () => {
+      try {
+        setLoading(true);
+
+        // Consulta ao Supabase para buscar eventos públicos
+        const { data, error } = await supabase
+          .from("eventos")
+          .select("*")
+          .eq("publico", true)
+          .order("data_evento", { ascending: true }); // Ordena por data
+
+        if (error) throw error;
+
+        setPublicEvents(data || []);
+      } catch (err) {
+        console.error("Erro ao buscar eventos:", err);
+        setError("Falha ao carregar eventos. Tente novamente mais tarde.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPublicEvents();
+  }, []);
+
+  // Dados mockados apenas para a seção "Meus Eventos"
+  const myEvents = [
     {
       id: "3",
       title: "3D Art",
@@ -85,42 +62,7 @@ const HomePage: React.FC = () => {
       image: "/placeholder.svg?height=300&width=500",
       memberCount: 345678,
     },
-    {
-      id: "4",
-      title: "NFT",
-      description: "An NFT community so that everyone can share their NFTs.",
-      image: "/placeholder.svg?height=300&width=500",
-      memberCount: 887789,
-    },
-    {
-      id: "5",
-      title: "test de forma de test",
-      description: "test de forma de test",
-      image: "/placeholder.svg?height=300&width=500",
-      memberCount: 887789,
-    },
-    {
-      id: "6",
-      title: "test de forma de test",
-      description: "test de forma de test",
-      image: "/placeholder.svg?height=300&width=500",
-      memberCount: 887789,
-    },
-  ];
-
-  const newMembers = [
-    {
-      id: "m1",
-      name: "Anne Couture",
-      image: "/placeholder.svg?height=100&width=100",
-      timeAgo: "5 min ago",
-    },
-    {
-      id: "m3",
-      name: "Marie Laval",
-      image: "/placeholder.svg?height=100&width=100",
-      timeAgo: "35 min ago",
-    },
+    // ... outros eventos mockados
   ];
 
   return (
@@ -137,21 +79,32 @@ const HomePage: React.FC = () => {
             backgroundImage="/placeholder.svg?height=300&width=1000"
           />
 
-          <Section title="Featured Events">
-            {featuredEvents.map((event) => (
-              <EventCard
-                key={event.id}
-                title={event.title}
-                description={event.description}
-                image={event.image}
-                onlineCount={event.onlineCount}
-                memberCount={event.memberCount}
-              />
-            ))}
+          {/* Seção de Eventos Públicos - Agora com dados reais */}
+          <Section title="Eventos Públicos">
+            {loading ? (
+              <p>Carregando eventos...</p>
+            ) : error ? (
+              <p>{error}</p>
+            ) : publicEvents.length === 0 ? (
+              <p>Nenhum evento público encontrado.</p>
+            ) : (
+              publicEvents.map((event) => (
+                <EventCard
+                  key={event.id}
+                  title={event.titulo}
+                  description={event.descricao}
+                  image={
+                    event.image_capa || "/placeholder.svg?height=300&width=500"
+                  }
+                  memberCount={event.max_participantes || undefined}
+                />
+              ))
+            )}
           </Section>
 
-          <Section title="Popular Right Now">
-            {popularEvents.map((event) => (
+          {/* Seção de Meus Eventos (mantida com dados mockados por enquanto) */}
+          <Section title="Meus Eventos">
+            {myEvents.map((event) => (
               <EventCard
                 key={event.id}
                 title={event.title}
@@ -163,15 +116,6 @@ const HomePage: React.FC = () => {
           </Section>
         </ContentArea>
       </MainContent>
-
-      {/* <RightSidebar>
-        <Profile
-          name="J a y"
-          username="@Jay"
-          image="/images/aaa.jpg?height=200&width=200"
-          newMembers={newMembers}
-        />
-      </RightSidebar> */}
     </Container>
   );
 };
