@@ -1,7 +1,9 @@
+// main.tsx
 import "./styles/globals.css";
-import { ReactNode, StrictMode, useEffect, useState } from "react";
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+
 import Home from "./pages/Home";
 import LoginPage from "./pages/Login";
 import ProfilePage from "./pages/Profile";
@@ -9,7 +11,6 @@ import CreateEvent from "./pages/CreateEvent";
 import EventDetails from "./pages/EventDetails";
 import Register from "./pages/Register";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
-
 
 const router = createBrowserRouter([
   {
@@ -21,12 +22,20 @@ const router = createBrowserRouter([
     element: <LoginPage />,
   },
   {
-    path: "/profile",
-    element: <ProtectedRoute><ProfilePage /></ProtectedRoute>,
+    path: "/perfil", // CAMINHO ESTÁTICO PARA O PERFIL DO USUÁRIO LOGADO
+    element: (
+      <ProtectedRoute>
+        <ProfilePage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/create-event",
-    element: <ProtectedRoute><CreateEvent /></ProtectedRoute>,
+    element: (
+      <ProtectedRoute>
+        <CreateEvent />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/Event-Details",
@@ -38,10 +47,13 @@ const router = createBrowserRouter([
   },
 ]);
 
-const root = createRoot(document.getElementById("root")!);
+const rootElement = document.getElementById("root");
+if (!rootElement) throw new Error("Failed to find the root element");
+
+const root = createRoot(rootElement);
 
 root.render(
   <StrictMode>
     <RouterProvider router={router} />
-  </StrictMode>,
+  </StrictMode>
 );

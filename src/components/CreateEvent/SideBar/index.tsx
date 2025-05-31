@@ -1,5 +1,11 @@
+"use client";
+
 import type React from "react";
+import { useEffect, useState } from "react";
 import { Home, Calendar, Users } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { supabase } from "../../../lib/supabase";
+
 import {
   SidebarContainer,
   Logo,
@@ -8,42 +14,117 @@ import {
   NavLink,
   NavText,
   Row,
-} from "./styles";
-import {
   UserContainer,
   UserAvatar,
-  // UserInfo,
-  // UserName,
-  // UserTag
-} from "./styles"; //from "../TopBar/styles"
-import { Link } from "react-router-dom";
+  UserInfo,
+  UserName,
+  UserTag,
+} from "./styles";
+
+interface UserProfileSidebar {
+  foto_perfil: string | null;
+  nome_usuario: string;
+  primeiro_nome?: string | null;
+}
 
 const Sidebar: React.FC = () => {
-  // Dados do usuário (você pode receber via props ou contexto)
-  const currentUser = {
-    username: "jay",
-    name: "Jay",
-    avatar: "/images/aaa.jpg?height=40&width=40",
-  };
+  const [currentUserProfile, setCurrentUserProfile] =
+    useState<UserProfileSidebar | null>(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const location = useLocation();
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      setIsLoadingProfile(true);
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+
+      if (authError || !user) {
+        setCurrentUserProfile(null);
+        setIsLoadingProfile(false);
+        return;
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from("usuario")
+        .select("foto_perfil, nome_usuario, primeiro_nome")
+        .eq("user_id", user.id)
+        .single();
+
+      if (profileError || !profile) {
+        setCurrentUserProfile({
+          foto_perfil: "/images/default-avatar.png", // Avatar padrão
+          nome_usuario: user.email?.split("@")[0] || "usuário",
+          primeiro_nome: "Usuário",
+        });
+      } else {
+        setCurrentUserProfile(profile);
+      }
+      setIsLoadingProfile(false);
+    };
+
+    fetchUserData();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
+      if (
+        event === "SIGNED_IN" ||
+        event === "USER_UPDATED" ||
+        event === "SIGNED_OUT"
+      ) {
+        fetchUserData();
+      }
+    });
+
+    return () => {
+      authListener?.subscription?.unsubscribe();
+    };
+  }, []);
+
+  const isActive = (path: string) => location.pathname === path;
+
+  const displayName =
+    currentUserProfile?.primeiro_nome ||
+    currentUserProfile?.nome_usuario ||
+    "Usuário";
+  const usernameTag = currentUserProfile?.nome_usuario
+    ? `@${currentUserProfile.nome_usuario}`
+    : ""; // Vazio se não houver nome_usuario
+  const avatarSrc =
+    currentUserProfile?.foto_perfil || "/images/default-avatar.png";
 
   return (
     <SidebarContainer>
-      {/* Container do usuário com Link */}
-      {/* <SidebarColorized></SidebarColorized> */}
       <Row>
-        <Link
-          to={`/profile/`}
-          style={{ textDecoration: "none", color: "inherit" }}
-        >
-          <UserContainer>
-            <UserAvatar src={currentUser.avatar} alt={currentUser.name} />
-            {/* <UserInfo>
-              <UserName>{currentUser.name}</UserName>
-              <UserTag>@{currentUser.username}</UserTag>
-            </UserInfo> */}
+        {isLoadingProfile ? (
+          <UserContainer style={{ padding: "10px 0", minHeight: "70px" }}>
+            {" "}
+            {/* Placeholder */}
+            <UserAvatar src="/images/default-avatar.png" alt="Carregando..." />
           </UserContainer>
-        </Link>
-
+        ) : currentUserProfile ? (
+          <Link
+            to="/perfil"
+            style={{ textDecoration: "none", color: "inherit" }}
+          >
+            <UserContainer>
+              <UserAvatar src={avatarSrc} alt={displayName} />
+              <UserInfo>
+                <UserName>{displayName}</UserName>
+                {usernameTag && <UserTag>{usernameTag}</UserTag>}
+              </UserInfo>
+            </UserContainer>
+          </Link>
+        ) : (
+          <UserContainer style={{ padding: "10px 0", minHeight: "70px" }}>
+            {" "}
+            <UserAvatar src="/images/default-avatar.png" alt="Convidado" />
+            <UserInfo>
+              <UserName>Convidado</UserName>
+            </UserInfo>
+          </UserContainer>
+        )}
         <Logo>
           <Link
             to="/"
@@ -54,23 +135,26 @@ const Sidebar: React.FC = () => {
 
       <NavList>
         <NavItem>
-          <NavLink as={Link} to="/" $active={false}>
+          <NavLink as={Link} to="/" $active={isActive("/")}>
             <Home size={20} />
             <NavText>Home</NavText>
           </NavLink>
         </NavItem>
-
         <NavItem>
-          <NavLink as={Link} to="/create-event" $active={false}>
+          <NavLink
+            as={Link}
+            to="/create-event"
+            $active={isActive("/create-event")}
+          >
             <Calendar size={20} />
-            <NavText>Create Event</NavText>
+            <NavText>Criar Evento</NavText>
           </NavLink>
         </NavItem>
-
         <NavItem>
-          <NavLink as={Link} to="/" $active={false}>
+          <NavLink as={Link} to="/eventos" $active={isActive("/eventos")}>
+            {" "}
             <Users size={20} />
-            <NavText>Public Events</NavText>
+            <NavText>Eventos Públicos</NavText>
           </NavLink>
         </NavItem>
       </NavList>
