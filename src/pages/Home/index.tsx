@@ -2,7 +2,7 @@ import type React from "react";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Container, MainContent, ContentArea } from "./styles";
-import { supabase } from "../../lib/supabase"; // Importe o cliente do Supabase
+import { supabase } from "../../lib/supabase";
 
 import Header from "../../components/Home/Header";
 import Banner from "../../components/Home/Banner";
@@ -79,7 +79,6 @@ const HomePage: React.FC = () => {
             backgroundImage="/placeholder.svg?height=300&width=1000"
           />
 
-          {/* Seção de Eventos Públicos - Agora com dados reais */}
           <Section title="Eventos Públicos">
             {loading ? (
               <p>Carregando eventos...</p>
