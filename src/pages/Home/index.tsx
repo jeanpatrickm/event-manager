@@ -37,7 +37,7 @@ const HomePage: React.FC = () => {
           .from("eventos")
           .select("*")
           .eq("publico", true)
-          .order("data_evento", { ascending: true }); // Ordena por data
+          .order("data_evento", { ascending: true });
 
         if (error) throw error;
 
