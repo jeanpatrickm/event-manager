@@ -50,7 +50,6 @@ const EventDetails: React.FC = () => {
     organizer: {
       name: "Jay",
       avatar: "/placeholder.svg?height=50&width=50",
-      title: "Organizador de Eventos",
     },
   };
 
@@ -85,14 +84,9 @@ const EventDetails: React.FC = () => {
   ]);
 
   const [isJoined, setIsJoined] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
 
   const handleJoinEvent = () => {
     setIsJoined(!isJoined);
-  };
-
-  const handleLikeEvent = () => {
-    setIsLiked(!isLiked);
   };
 
   const handleAddComment = (content: string) => {
@@ -122,7 +116,6 @@ const EventDetails: React.FC = () => {
           <EventOrganizer
             name={eventData.organizer.name}
             avatar={eventData.organizer.avatar}
-            title={eventData.organizer.title}
           />
 
           <EventDescription>{eventData.description}</EventDescription>
@@ -137,9 +130,7 @@ const EventDetails: React.FC = () => {
             tags={eventData.tags}
             status={eventData.status}
             isJoined={isJoined}
-            isLiked={isLiked}
             onJoin={handleJoinEvent}
-            onLike={handleLikeEvent}
           />
 
           <ParticipantsList

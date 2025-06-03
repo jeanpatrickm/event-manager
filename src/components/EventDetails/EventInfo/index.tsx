@@ -1,15 +1,7 @@
 "use client";
 
 import type React from "react";
-import {
-  Calendar,
-  Clock,
-  MapPin,
-  Users,
-  Tag,
-  Share2,
-  Heart,
-} from "lucide-react";
+import { Calendar, Clock, MapPin, Users, Tag, Share2 } from "lucide-react";
 import {
   InfoSection,
   InfoGrid,
@@ -35,7 +27,6 @@ interface EventInfoProps {
   isJoined: boolean;
   isLiked: boolean;
   onJoin: () => void;
-  onLike: () => void;
 }
 
 const EventInfo: React.FC<EventInfoProps> = ({
@@ -48,9 +39,7 @@ const EventInfo: React.FC<EventInfoProps> = ({
   tags,
   status,
   isJoined,
-  isLiked,
   onJoin,
-  onLike,
 }) => {
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = {
@@ -122,11 +111,6 @@ const EventInfo: React.FC<EventInfoProps> = ({
         >
           {isJoined ? "Inscrito" : "Participar do Evento"}
         </JoinEventButton>
-
-        <ActionButton onClick={onLike} $active={isLiked}>
-          <Heart size={20} />
-          {isLiked ? "Curtido" : "Curtir"}
-        </ActionButton>
 
         <ActionButton>
           <Share2 size={20} />
