@@ -4,26 +4,19 @@ import {
   OrganizerAvatar,
   OrganizerInfo,
   OrganizerName,
-  OrganizerTitle,
 } from "./styles";
 
 interface EventOrganizerProps {
   name: string;
   avatar: string;
-  title: string;
 }
 
-const EventOrganizer: React.FC<EventOrganizerProps> = ({
-  name,
-  avatar,
-  title,
-}) => {
+const EventOrganizer: React.FC<EventOrganizerProps> = ({ name, avatar }) => {
   return (
     <OrganizerContainer>
-      <OrganizerAvatar src={"/images/aaa.jpg"} alt={name} />
+      <OrganizerAvatar src={avatar} alt={`Foto de ${name}`} />{" "}
       <OrganizerInfo>
         <OrganizerName>Organizado por {name}</OrganizerName>
-        <OrganizerTitle>{title}</OrganizerTitle>
       </OrganizerInfo>
     </OrganizerContainer>
   );

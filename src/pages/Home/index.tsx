@@ -1,3 +1,4 @@
+// HomePage.tsx MODIFICADO
 import type React from "react";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
@@ -11,7 +12,7 @@ import EventCard from "../../components/Home/Event-Card";
 import Sidebar from "../../components/CreateEvent/SideBar";
 
 interface Event {
-  id: string;
+  evento_id: string; //
   titulo: string;
   descricao: string;
   image_capa: string | null;
@@ -26,25 +27,31 @@ const HomePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Busca os eventos públicos ao carregar o componente
   useEffect(() => {
     const fetchPublicEvents = async () => {
       try {
         setLoading(true);
+        setError(null);
 
         // Consulta ao Supabase para buscar eventos públicos
-        const { data, error } = await supabase
+        const { data, error: supabaseError } = await supabase
           .from("eventos")
-          .select("*")
+          .select(
+            "evento_id, titulo, descricao, image_capa, publico, data_evento, horario, max_participantes" // Selecionando colunas explicitamente
+          )
           .eq("publico", true)
           .order("data_evento", { ascending: true });
 
-        if (error) throw error;
+        if (supabaseError) throw supabaseError; // Lança o erro do Supabase
 
         setPublicEvents(data || []);
-      } catch (err) {
+      } catch (err: any) {
+        // Captura qualquer erro, incluindo o do Supabase
         console.error("Erro ao buscar eventos:", err);
-        setError("Falha ao carregar eventos. Tente novamente mais tarde.");
+        setError(
+          err.message ||
+            "Falha ao carregar eventos. Tente novamente mais tarde."
+        );
       } finally {
         setLoading(false);
       }
@@ -53,25 +60,22 @@ const HomePage: React.FC = () => {
     fetchPublicEvents();
   }, []);
 
-  // Dados mockados apenas para a seção "Meus Eventos"
+  // Dados mockados para a seção "Meus Eventos"
   const myEvents = [
     {
-      id: "3",
-      title: "3D Art",
+      id: "mock_event_3", // Use evento_id se for real
+      title: "3D Art (Mock)",
       description: "A great place to discuss art.",
       image: "/placeholder.svg?height=300&width=500",
       memberCount: 345678,
     },
-    // ... outros eventos mockados
   ];
 
   return (
     <Container>
       <Sidebar activeItem="Home" />
-
       <MainContent>
         <Header />
-
         <ContentArea>
           <Banner
             title="Find Your Community"
@@ -89,8 +93,8 @@ const HomePage: React.FC = () => {
             ) : (
               publicEvents.map((event) => (
                 <Link
-                  key={event.id}
-                  to="/event-details"
+                  key={event.evento_id}
+                  to={`/event-details/${event.evento_id}`}
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
                   <EventCard
@@ -111,8 +115,8 @@ const HomePage: React.FC = () => {
           <Section title="Meus Eventos">
             {myEvents.map((event) => (
               <Link
-                key={event.id}
-                to="/event-details"
+                key={event.id} // Se for um evento real, use evento_id
+                to={`/event-details/${event.id}`} // Se for um evento real, use evento_id
                 style={{ textDecoration: "none", color: "inherit" }}
               >
                 <EventCard

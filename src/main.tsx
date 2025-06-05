@@ -1,4 +1,3 @@
-// main.tsx
 import "./styles/globals.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -22,7 +21,7 @@ const router = createBrowserRouter([
     element: <LoginPage />,
   },
   {
-    path: "/perfil", // CAMINHO ESTÁTICO PARA O PERFIL DO USUÁRIO LOGADO
+    path: "/perfil",
     element: (
       <ProtectedRoute>
         <ProfilePage />
@@ -38,7 +37,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/Event-Details",
+    path: "/event-details/:eventId",
     element: <EventDetails />,
   },
   {
