@@ -19,8 +19,9 @@ import EventHeader from "../../components/EventDetails/EventHeader";
 import EventOrganizer from "../../components/EventDetails/EventOrganizer";
 import EventInfo from "../../components/EventDetails/EventInfo";
 import ParticipantsList from "../../components/EventDetails/ParticipantsList";
+import CommentSection from "../../components/EventDetails/ComentSection";
 
-// --- INÍCIO DAS INTERFACES ---
+// --- INÍCIO DAS INTERFACES (CommentDBData ATUALIZADA) ---
 interface OrganizerData {
   user_id: string;
   nome_completo: string;
@@ -56,16 +57,17 @@ interface ParticipantData {
   foto_perfil: string | null;
 }
 
-/* // Interface para comentários 
 interface CommentDBData {
   comentario_id: string;
-  texto: string;
+  texto: string | null;
   data: string;
   user_id: string;
+  evento_id: string;
+  foto_id: string | null;
   autor_nome: string;
   autor_avatar: string | null;
+  attachedImageUrl?: string | null;
 }
-*/
 // --- FIM DAS INTERFACES ---
 
 type EventStatus = "upcoming" | "ongoing" | "past" | "undefined";
@@ -77,11 +79,12 @@ const EventDetails: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [eventData, setEventData] = useState<DetailedEventData | null>(null);
   const [participants, setParticipants] = useState<ParticipantData[]>([]);
-  // const [comments, setComments] = useState<CommentDBData[]>([]); // Comentado
+  const [comments, setComments] = useState<CommentDBData[]>([]);
   const [isJoined, setIsJoined] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loadingInteraction, setLoadingInteraction] = useState(false);
+  const [loadingComment, setLoadingComment] = useState(false);
 
   useEffect(() => {
     const getSession = async () => {
@@ -91,7 +94,6 @@ const EventDetails: React.FC = () => {
       setCurrentUser(user);
     };
     getSession();
-
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setCurrentUser(session?.user ?? null);
@@ -110,19 +112,13 @@ const EventDetails: React.FC = () => {
     }
 
     const fetchEventDetails = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        setLoading(true);
-        setError(null);
-
-        // 1. Buscar dados do evento
         const { data: eventResult, error: eventError } = await supabase
           .from("eventos")
           .select(
-            `
-            *,
-            usuario:user_id ( user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario ),
-            categoria_info:cod_categoria ( cod_categoria, categoria )
-          `
+            `*, usuario:user_id (user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario), categoria_info:cod_categoria (cod_categoria, categoria)`
           )
           .eq("evento_id", eventId)
           .single();
@@ -153,15 +149,11 @@ const EventDetails: React.FC = () => {
         };
         setEventData(fetchedEventData);
 
-        // 2. Buscar participantes
         const { data: participantsResult, error: participantsError } =
           await supabase
             .from("inscricao")
             .select(
-              `
-            user_id,
-            usuario:user_id (user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario)
-          `
+              `user_id, usuario:user_id (user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario)`
             )
             .eq("evento_id", eventId);
 
@@ -189,45 +181,65 @@ const EventDetails: React.FC = () => {
           setIsJoined(false);
         }
 
-        /* // 3. Buscar comentários - Comentado
-        const { data: commentsResult, error: commentsError } = await supabase
+        // BUSCAR COMENTÁRIOS E SUAS IMAGENS ANEXADAS
+        const { data: commentsData, error: commentsError } = await supabase
           .from("comentario")
-          .select(\`
-            comentario_id, texto, data, user_id,
-            usuario:user_id (user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario)
-          \`)
-          .eq("evento_id", eventId) // Esta linha causava o erro
+          .select(
+            `
+            comentario_id, texto, data, user_id, evento_id, foto_id,
+            usuario:user_id (user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario),
+            galeria_item:foto_id (foto_id, foto_url) /* Tenta fazer o join com galeria usando comentario.foto_id = galeria.foto_id */
+          `
+          )
+          .eq("evento_id", eventId)
           .order("data", { ascending: false });
 
         if (commentsError) throw commentsError;
-        const fetchedComments: CommentDBData[] = (commentsResult || []).map(c => ({
+
+        const fetchedComments: CommentDBData[] = (commentsData || []).map(
+          (c) => ({
             comentario_id: c.comentario_id,
             texto: c.texto,
             data: c.data,
             user_id: c.user_id,
-            autor_nome: \`\${c.usuario.primeiro_nome || ''} \${c.usuario.sobrenome || ''}\`.trim() || c.usuario.nome_usuario || 'Usuário',
-            autor_avatar: c.usuario.foto_perfil
-        }));
+            evento_id: c.evento_id,
+            foto_id: c.foto_id,
+            autor_nome:
+              `${c.usuario.primeiro_nome || ""} ${
+                c.usuario.sobrenome || ""
+              }`.trim() ||
+              c.usuario.nome_usuario ||
+              "Usuário",
+            autor_avatar: c.usuario.foto_perfil,
+            // 'galeria_item' pode ser null ou um objeto se o join funcionar (ou um array se a relação não for 1-para-1 unicamente).
+            // Ajuste o acesso a foto_url conforme a estrutura retornada por Supabase/PostgREST.
+            attachedImageUrl: c.galeria_item
+              ? Array.isArray(c.galeria_item)
+                ? c.galeria_item[0]?.foto_url
+                : c.galeria_item.foto_url
+              : null,
+          })
+        );
         setComments(fetchedComments);
-        */
       } catch (err: any) {
-        console.error("Erro ao buscar detalhes do evento:", err);
-
-        setError(err.message || "Falha ao carregar detalhes do evento.");
+        console.error("Erro ao buscar detalhes do evento ou comentários:", err);
+        setError(err.message || "Falha ao carregar dados.");
       } finally {
         setLoading(false);
       }
     };
-
     fetchEventDetails();
   }, [eventId, currentUser]);
 
   const handleJoinEvent = async () => {
     if (!currentUser) {
-      alert("Você precisa estar logado para interagir com o evento.");
+      alert("Você precisa estar logado para se inscrever.");
       return;
     }
-    if (!eventData) return;
+    if (!eventData) {
+      alert("Dados do evento não carregados.");
+      return;
+    }
     setLoadingInteraction(true);
     try {
       if (isJoined) {
@@ -241,6 +253,14 @@ const EventDetails: React.FC = () => {
           prev.filter((p) => p.user_id !== currentUser.id)
         );
       } else {
+        if (
+          eventData.max_participantes !== null &&
+          participants.length >= eventData.max_participantes
+        ) {
+          alert("Desculpe, as vagas para este evento acabaram.");
+          setLoadingInteraction(false);
+          return;
+        }
         const { error: insertError } = await supabase
           .from("inscricao")
           .insert([
@@ -248,57 +268,181 @@ const EventDetails: React.FC = () => {
           ]);
         if (insertError) throw insertError;
         setIsJoined(true);
-        const userProfile = await supabase
+        const { data: userProfile, error: profileError } = await supabase
           .from("usuario")
-          .select("primeiro_nome, sobrenome, foto_perfil, nome_usuario")
+          .select(
+            "user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario"
+          )
           .eq("user_id", currentUser.id)
           .single();
-        if (userProfile.data) {
+        if (profileError) {
+          console.warn(
+            "Não foi possível buscar o perfil:",
+            profileError.message
+          );
           setParticipants((prev) => [
             ...prev,
             {
               user_id: currentUser.id,
+              nome_completo: currentUser.email || "Você",
+              foto_perfil: null,
+            },
+          ]);
+        } else if (userProfile) {
+          setParticipants((prev) => [
+            ...prev,
+            {
+              user_id: userProfile.user_id,
               nome_completo:
-                `${userProfile.data.primeiro_nome || ""} ${
-                  userProfile.data.sobrenome || ""
+                `${userProfile.primeiro_nome || ""} ${
+                  userProfile.sobrenome || ""
                 }`.trim() ||
-                userProfile.data.nome_usuario ||
+                userProfile.nome_usuario ||
                 "Você",
-              foto_perfil: userProfile.data.foto_perfil,
+              foto_perfil: userProfile.foto_perfil,
             },
           ]);
         }
       }
     } catch (err: any) {
-      console.error("Erro na interação de inscrição:", err);
-      alert(err.message || "Falha ao processar inscrição.");
+      console.error("Erro ao processar inscrição:", err);
+      alert(`Erro: ${err.message}`);
     } finally {
       setLoadingInteraction(false);
     }
   };
 
-  /* // Função handleAddComment 
-  const handleAddComment = async (content: string) => {
+  // FUNÇÃO handleAddComment ATUALIZADA PARA LIDAR COM UPLOAD DE IMAGEM
+  const handleAddComment = async (
+    commentText: string,
+    imageFile?: File | null
+  ) => {
     if (!currentUser) {
       alert("Você precisa estar logado para comentar.");
       return;
     }
-    if (!eventData || content.trim() === "") return;
-    setLoadingInteraction(true);
+    if (!eventData) {
+      alert("Dados do evento não estão carregados.");
+      return;
+    }
+    // Permite comentário se houver texto OU imagem
+    if (commentText.trim() === "" && !imageFile) {
+      alert("Adicione um texto ou uma imagem para o seu comentário.");
+      return;
+    }
+
+    setLoadingComment(true);
+    let newUploadedFotoIdFromGaleria: string | null = null;
+
     try {
-      // A lógica de inserção de comentário iria aqui,
-      // mas precisaria da coluna evento_id na tabela comentario.
-      alert("Funcionalidade de adicionar comentário temporariamente desabilitada.");
+      // 1. Se houver imagem, faz upload e registra na galeria
+      if (imageFile) {
+        const fileExt = imageFile.name.split(".").pop();
+        const imgFileName = `comment_${
+          currentUser.id
+        }_${Date.now()}.${fileExt}`;
+        const bucketName = "event-images";
+        const imgFilePath = `comment_attachments/${imgFileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from(bucketName)
+          .upload(imgFilePath, imageFile);
+
+        if (uploadError) {
+          console.error("Erro no upload da imagem do comentário:", uploadError);
+          throw new Error(`Falha no upload da imagem: ${uploadError.message}`);
+        }
+
+        const { data: urlData } = supabase.storage
+          .from(bucketName)
+          .getPublicUrl(imgFilePath);
+        const imageUrl = urlData.publicUrl;
+
+        // Gera um UUID para galeria.foto_id (que é o que comentario.foto_id referencia)
+        const generatedFotoIdForGaleriaTable = crypto.randomUUID();
+
+        const { data: galeriaEntry, error: galeriaError } = await supabase
+          .from("galeria")
+          .insert({
+            foto_id: generatedFotoIdForGaleriaTable,
+            evento_id: eventData.evento_id,
+            user_id: currentUser.id,
+            foto_url: imageUrl,
+            legenda:
+              commentText.trim().substring(0, 50) || `Anexo de comentário`,
+            // data_upload na tabela galeria deve ter default now()
+          })
+          .select("foto_id")
+          .single();
+
+        if (galeriaError) {
+          console.error("Erro ao salvar imagem na galeria:", galeriaError);
+          throw new Error(
+            `Falha ao registrar imagem na galeria: ${galeriaError.message}`
+          );
+        }
+        if (!galeriaEntry || !galeriaEntry.foto_id) {
+          throw new Error(
+            "Não foi possível obter o ID da foto da galeria após a inserção."
+          );
+        }
+
+        newUploadedFotoIdFromGaleria = galeriaEntry.foto_id;
+      }
+
+      // 2. Insere o comentário na tabela 'comentario'
+      const { data: newCommentData, error: insertError } = await supabase
+        .from("comentario")
+        .insert({
+          evento_id: eventData.evento_id,
+          user_id: currentUser.id,
+          texto: commentText.trim() || null,
+          foto_id: newUploadedFotoIdFromGaleria,
+        })
+        .select(
+          `
+            comentario_id, texto, data, user_id, evento_id, foto_id,
+            usuario:user_id (user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario),
+            galeria_item:foto_id (foto_id, foto_url)
+        `
+        )
+        .single();
+
+      if (insertError) throw insertError;
+
+      if (newCommentData) {
+        const addedComment: CommentDBData = {
+          comentario_id: newCommentData.comentario_id,
+          texto: newCommentData.texto,
+          data: newCommentData.data,
+          user_id: newCommentData.user_id,
+          evento_id: newCommentData.evento_id,
+          foto_id: newCommentData.foto_id,
+          autor_nome:
+            `${newCommentData.usuario.primeiro_nome || ""} ${
+              newCommentData.usuario.sobrenome || ""
+            }`.trim() ||
+            newCommentData.usuario.nome_usuario ||
+            "Usuário",
+          autor_avatar: newCommentData.usuario.foto_perfil,
+          attachedImageUrl: newCommentData.galeria_item
+            ? Array.isArray(newCommentData.galeria_item)
+              ? newCommentData.galeria_item[0]?.foto_url
+              : newCommentData.galeria_item.foto_url
+            : null,
+        };
+        setComments((prevComments) => [addedComment, ...prevComments]);
+      }
     } catch (err: any) {
       console.error("Erro ao adicionar comentário:", err);
-      alert(err.message || "Falha ao adicionar comentário.");
+      alert(`Falha ao adicionar comentário: ${err.message}`);
     } finally {
-      setLoadingInteraction(false);
+      setLoadingComment(false);
     }
   };
-  */
 
   const getEventStatus = (): EventStatus => {
+    /* ... (lógica inalterada) ... */
     if (!eventData?.data_evento) return "undefined";
     const eventDateTimeStr = `${eventData.data_evento.split("T")[0]}T${
       eventData.horario
@@ -325,13 +469,13 @@ const EventDetails: React.FC = () => {
   if (loading)
     return (
       <Container>
-        <p>Carregando informações do evento...</p>
+        <p>Carregando...</p>
       </Container>
     );
   if (error)
     return (
       <Container>
-        <p>Erro ao carregar evento: {error}</p>
+        <p>Erro: {error}</p>
       </Container>
     );
   if (!eventData)
@@ -353,9 +497,7 @@ const EventDetails: React.FC = () => {
           minute: "2-digit",
         })
       : eventData.horario.substring(0, 5);
-  } catch (e) {
-    /* Usa N/A */
-  }
+  } catch (e) {}
   const eventStatus = getEventStatus();
 
   return (
@@ -411,13 +553,20 @@ const EventDetails: React.FC = () => {
             }))}
             totalParticipants={participants.length}
           />
-          {/*
           <CommentSection
-            comments={[]} // Passa um array vazio ou não renderiza
-            onAddComment={() => alert("Funcionalidade de adicionar comentário desabilitada.")} // Função mock
+            comments={comments.map((c) => ({
+              id: c.comentario_id,
+              author: c.autor_nome,
+              authorAvatar:
+                c.autor_avatar || "/placeholder.svg?height=40&width=40",
+              time: new Date(c.data).toLocaleString("pt-BR"),
+              content: c.texto || "",
+              attachedImageUrl: c.attachedImageUrl,
+            }))}
+            onAddComment={handleAddComment}
             isUserAuthenticated={!!currentUser}
+            isLoadingComment={loadingComment}
           />
-          */}
         </ContentContainer>
       </div>
     </Container>

@@ -62,23 +62,44 @@ export const ActionButtonsContainer = styled.div`
   gap: 12px;
 `;
 
-export const JoinEventButton = styled.button<{ $joined: boolean }>`
+export const JoinEventButton = styled.button<{
+  $joined: boolean;
+  $hoveringUnsubscribe?: boolean;
+}>`
   padding: 10px 20px;
-  background-color: ${(props) => (props.$joined ? "#22c55e" : " var(--logo-text)")};
   color: var(--white);
   border: none;
   border-radius: 6px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.2s ease-in-out;
 
-  &:hover {
-    background-color: ${(props) => (props.$joined ? "#16a34a" : "var(--color-azul-roxo)")};
+  background-color: ${({ $joined, $hoveringUnsubscribe }) => {
+    if ($joined) {
+      if ($hoveringUnsubscribe) {
+        return "var(--cor-vermelho-cancelar, #DC3545)";
+      }
+      return "var(--cor-verde-inscrito, #22c55e)";
+    }
+    return "var(--logo-text)";
+  }};
+
+  &:hover:not(:disabled) {
+    background-color: ${({ $joined, $hoveringUnsubscribe }) => {
+      if ($joined) {
+        if ($hoveringUnsubscribe) {
+          return "var(--cor-vermelho-cancelar-hover, #c53030)";
+        }
+        return "var(--cor-verde-inscrito-hover, #16a34a)";
+      }
+      return "var(--color-azul-roxo)";
+    }};
   }
 
   &:disabled {
     background-color: var(--color-dark-grey-text);
     cursor: not-allowed;
+    opacity: 0.65;
   }
 `;
 
@@ -87,8 +108,10 @@ export const ActionButton = styled.button<{ $active?: boolean }>`
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  background-color: ${(props) => (props.$active ? "var(--background-dark-3)" : "transparent")};
-  color: ${(props) => (props.$active ? "var(--white)" : "var(--user-tag-span)")};
+  background-color: ${(props) =>
+    props.$active ? "var(--background-dark-3)" : "transparent"};
+  color: ${(props) =>
+    props.$active ? "var(--white)" : "var(--user-tag-span)"};
   border: 1px solid var(--color-dark-grey-text);
   border-radius: 6px;
   font-size: 14px;
