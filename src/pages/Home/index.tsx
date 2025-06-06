@@ -33,7 +33,6 @@ const HomePage: React.FC = () => {
         setLoading(true);
         setError(null);
 
-        // Consulta ao Supabase para buscar eventos públicos
         const { data, error: supabaseError } = await supabase
           .from("eventos")
           .select(
@@ -59,17 +58,6 @@ const HomePage: React.FC = () => {
 
     fetchPublicEvents();
   }, []);
-
-  // Dados mockados para a seção "Meus Eventos"
-  const myEvents = [
-    {
-      id: "mock_event_3", // Use evento_id se for real
-      title: "3D Art (Mock)",
-      description: "A great place to discuss art.",
-      image: "/placeholder.svg?height=300&width=500",
-      memberCount: 345678,
-    },
-  ];
 
   return (
     <Container>
@@ -109,24 +97,6 @@ const HomePage: React.FC = () => {
                 </Link>
               ))
             )}
-          </Section>
-
-          {/* Seção de Meus Eventos (mantida com dados mockados por enquanto) */}
-          <Section title="Meus Eventos">
-            {myEvents.map((event) => (
-              <Link
-                key={event.id} // Se for um evento real, use evento_id
-                to={`/event-details/${event.id}`} // Se for um evento real, use evento_id
-                style={{ textDecoration: "none", color: "inherit" }}
-              >
-                <EventCard
-                  title={event.title}
-                  description={event.description}
-                  image={event.image}
-                  memberCount={event.memberCount}
-                />
-              </Link>
-            ))}
           </Section>
         </ContentArea>
       </MainContent>

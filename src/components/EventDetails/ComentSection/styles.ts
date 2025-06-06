@@ -24,7 +24,7 @@ export const CommentForm = styled.form`
 `;
 
 export const CommentInput = styled.textarea`
-  width: 100%; // Para ocupar a largura total
+  width: 100%;
   padding: 12px 16px;
   background-color: var(--background-dark-3);
   border: 1px solid var(--color-dark-grey-text);

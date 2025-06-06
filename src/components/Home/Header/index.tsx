@@ -15,7 +15,7 @@ import { supabase } from "../../../lib/supabase";
 const Header: React.FC = () => {
   const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
   const navigate = useNavigate();
-  const dropdownRef = useRef<HTMLDivElement>(null); // Ref para o contêiner do ícone e dropdown
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleToggleSettingsDropdown = () => {
     setShowSettingsDropdown((prev) => !prev);

@@ -1,7 +1,7 @@
 "use client";
 
+import { Instagram, Linkedin, Camera, Save, Edit } from "lucide-react";
 import type { FC, ChangeEvent } from "react";
-import { Instagram, Linkedin, Camera, Save } from "lucide-react";
 import {
   ProfileHeaderContainer,
   ProfileBanner,
@@ -23,7 +23,6 @@ import {
   ActionButton,
 } from "./styles";
 
-// ATUALIZADA: Props para o ProfileHeader
 interface ProfileHeaderProps {
   username: string;
   displayName: string;
@@ -35,6 +34,10 @@ interface ProfileHeaderProps {
   newAvatarSelected: boolean;
   isUploadingAvatar: boolean;
   uploadError?: string | null;
+  instagramLink?: string | null;
+  linkedinLink?: string | null;
+
+  onEditClick: () => void;
 }
 
 const ProfileHeader: FC<ProfileHeaderProps> = ({
@@ -48,6 +51,10 @@ const ProfileHeader: FC<ProfileHeaderProps> = ({
   newAvatarSelected,
   isUploadingAvatar,
   uploadError,
+  instagramLink,
+  linkedinLink,
+
+  onEditClick,
 }) => {
   const fileInputId = "avatar-upload-profile";
 
@@ -69,7 +76,6 @@ const ProfileHeader: FC<ProfileHeaderProps> = ({
           disabled={isUploadingAvatar}
         />
 
-        {/* Bloco para Nome e Username */}
         <div>
           <ProfileName>{displayName}</ProfileName>
           <ProfileUsername>@{username}</ProfileUsername>
@@ -82,7 +88,6 @@ const ProfileHeader: FC<ProfileHeaderProps> = ({
           </StatItem>
         </ProfileStats>
 
-        {/* Container para controles de upload (botão e erro) */}
         {(newAvatarSelected || uploadError) && (
           <UploadControlsContainer>
             {newAvatarSelected && (
@@ -101,14 +106,36 @@ const ProfileHeader: FC<ProfileHeaderProps> = ({
         )}
 
         <ProfileActions>
-          <ActionButton $primary type="button">
-            <Instagram size={14} />
-            Instagram
+          <ActionButton type="button" onClick={onEditClick}>
+            <Edit size={14} />
+            Editar Perfil
           </ActionButton>
-          <ActionButton $primary type="button">
-            <Linkedin size={14} />
-            LinkedIn
-          </ActionButton>
+
+          {instagramLink && (
+            <ActionButton
+              as="a"
+              href={instagramLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              $primary
+            >
+              <Instagram size={14} />
+              Instagram
+            </ActionButton>
+          )}
+
+          {linkedinLink && (
+            <ActionButton
+              as="a"
+              href={linkedinLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              $primary
+            >
+              <Linkedin size={14} />
+              LinkedIn
+            </ActionButton>
+          )}
         </ProfileActions>
       </ProfileInfo>
     </ProfileHeaderContainer>

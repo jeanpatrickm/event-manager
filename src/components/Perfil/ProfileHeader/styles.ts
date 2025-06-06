@@ -102,12 +102,10 @@ export const AvatarOverlay = styled.div.attrs({
   pointer-events: none;
 `;
 
-// Input de arquivo escondido
 export const HiddenFileInput = styled.input`
   display: none;
 `;
 
-// Seus estilos existentes
 export const ProfileName = styled.h1`
   font-size: 24px;
   font-weight: 700;
