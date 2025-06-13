@@ -16,7 +16,13 @@ export const SearchContainer = styled.div`
   background-color: #2a293b;
   border-radius: 20px;
   padding: 8px 15px;
-  width: 300px;
+
+  /* --- SUAS ALTERAÇÕES ESTÃO AQUI --- */
+
+  /* width: 300px; (REMOVIDO) */
+  flex-grow: 1; /* Faz o container crescer para ocupar o espaço livre */
+  margin: 0 40px; /* Adiciona um respiro nas laterais (entre a sidebar e os ícones) */
+  max-width: 700px; /* Impede que a barra fique grande demais em telas muito largas */
 `;
 
 export const SearchInput = styled.input`
@@ -96,6 +102,6 @@ export const DropdownMenuItem = styled.button`
 
   svg {
     margin-right: 10px;
-    color: #ccc; // Cor do ícone
+    color: #ccc;
   }
 `;

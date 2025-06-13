@@ -12,10 +12,21 @@ import {
 import { Search, Bell, MessageCircle, Settings, LogOut } from "lucide-react";
 import { supabase } from "../../../lib/supabase";
 
-const Header: React.FC = () => {
+// 1. Definimos a interface para as novas props que o Header vai receber
+interface HeaderProps {
+  searchTerm: string;
+  onSearchChange: (term: string) => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ searchTerm, onSearchChange }) => {
   const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
   const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // 2. Criamos a função que avisa o componente pai sobre a mudança no input
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onSearchChange(e.target.value);
+  };
 
   const handleToggleSettingsDropdown = () => {
     setShowSettingsDropdown((prev) => !prev);
@@ -36,7 +47,6 @@ const Header: React.FC = () => {
     }
   };
 
-  // fechar o dropdown se clicar fora dele
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -62,7 +72,12 @@ const Header: React.FC = () => {
     <HeaderContainer>
       <SearchContainer>
         <Search size={18} color="#666" />
-        <SearchInput placeholder="Explore" />
+        {/* 3. Conectamos o input com as props recebidas */}
+        <SearchInput
+          placeholder="Explore eventos pelo título ou descrição"
+          value={searchTerm}
+          onChange={handleSearchChange}
+        />
       </SearchContainer>
 
       <IconsContainer>

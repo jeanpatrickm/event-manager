@@ -148,7 +148,7 @@ const Sidebar: React.FC = () => {
         <NavItem>
           <NavLink as={Link} to="/" $active={isActive("/")}>
             <Home size={20} />
-            <NavText>Home</NavText>
+            <NavText>Início</NavText>
           </NavLink>
         </NavItem>
         <NavItem>

@@ -1,4 +1,3 @@
-// HomePage.tsx MODIFICADO
 import type React from "react";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
@@ -12,7 +11,7 @@ import EventCard from "../../components/Home/Event-Card";
 import Sidebar from "../../components/CreateEvent/SideBar";
 
 interface Event {
-  evento_id: string; //
+  evento_id: string;
   titulo: string;
   descricao: string;
   image_capa: string | null;
@@ -27,25 +26,58 @@ const HomePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // 1. Estado para o valor imediato do input de busca
+  const [searchTerm, setSearchTerm] = useState("");
+  // 2. Estado para o valor "atrasado" (debounced), que efetivamente dispara a busca
+  const [debouncedTerm, setDebouncedTerm] = useState("");
+
+  // 3. Efeito para criar o "debounce" (atraso inteligente)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedTerm(searchTerm);
+    }, 500); // Espera 500ms após o usuário parar de digitar
+
+    // Limpa o timer anterior se o usuário digitar novamente
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [searchTerm]); // Roda sempre que o termo de busca imediato muda
+
+  // 4. Efeito principal para buscar os dados, agora dependendo do termo "atrasado"
   useEffect(() => {
     const fetchPublicEvents = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        const { data, error: supabaseError } = await supabase
+        // Inicia a query base do Supabase
+        let query = supabase
           .from("eventos")
           .select(
-            "evento_id, titulo, descricao, image_capa, publico, data_evento, horario, max_participantes" // Selecionando colunas explicitamente
+            "evento_id, titulo, descricao, image_capa, publico, data_evento, horario, max_participantes"
           )
-          .eq("publico", true)
-          .order("data_evento", { ascending: true });
+          .eq("publico", true);
 
-        if (supabaseError) throw supabaseError; // Lança o erro do Supabase
+        // Se houver um termo de busca, adiciona o filtro na query
+        if (debouncedTerm) {
+          // .or() busca em múltiplos campos. 'ilike' é case-insensitive e busca por partes do texto ('%').
+          query = query.or(
+            `titulo.ilike.%${debouncedTerm}%,descricao.ilike.%${debouncedTerm}%`
+          );
+        }
+
+        // Adiciona a ordenação no final
+        const { data, error: supabaseError } = await query.order(
+          "data_evento",
+          {
+            ascending: true,
+          }
+        );
+
+        if (supabaseError) throw supabaseError;
 
         setPublicEvents(data || []);
       } catch (err: any) {
-        // Captura qualquer erro, incluindo o do Supabase
         console.error("Erro ao buscar eventos:", err);
         setError(
           err.message ||
@@ -57,13 +89,14 @@ const HomePage: React.FC = () => {
     };
 
     fetchPublicEvents();
-  }, []);
+  }, [debouncedTerm]); // IMPORTANTE: A busca só roda quando o termo "atrasado" muda
 
   return (
     <Container>
       <Sidebar activeItem="Home" />
       <MainContent>
-        <Header />
+        {/* 5. Passa o estado e a função para o Header */}
+        <Header searchTerm={searchTerm} onSearchChange={setSearchTerm} />
         <ContentArea>
           <Banner
             title="Find Your Community"
@@ -77,7 +110,12 @@ const HomePage: React.FC = () => {
             ) : error ? (
               <p>{error}</p>
             ) : publicEvents.length === 0 ? (
-              <p>Nenhum evento público encontrado.</p>
+              // Mensagem dinâmica se não houver resultados para a busca
+              <p>
+                {debouncedTerm
+                  ? "Nenhum evento encontrado para sua busca."
+                  : "Nenhum evento público encontrado."}
+              </p>
             ) : (
               publicEvents.map((event) => (
                 <Link
