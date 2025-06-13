@@ -29,6 +29,15 @@ const router = createBrowserRouter([
     ),
   },
   {
+    // Rota para ver o perfil de qualquer usuário (com ID na URL)
+    path: "/perfil/:userId",
+    element: (
+      <ProtectedRoute>
+        <ProfilePage />
+      </ProtectedRoute>
+    ),
+  },
+  {
     path: "/create-event",
     element: (
       <ProtectedRoute>

@@ -1,7 +1,8 @@
 "use client";
 
 import type React from "react";
-import { useState, useRef } from "react"; // Adicionado useRef
+import { useState, useRef } from "react";
+import { Link } from "react-router-dom";
 import { MessageSquare, Paperclip, X as LucideX } from "lucide-react";
 import {
   DiscussionContainer,
@@ -22,9 +23,9 @@ import {
   FileInputLabel,
 } from "./styles";
 
-// Interface local para o formato esperado dos comentários na UI
 interface Comment {
   id: string;
+  authorId: string;
   author: string;
   authorAvatar: string;
   time: string;
@@ -34,7 +35,6 @@ interface Comment {
 
 interface CommentSectionProps {
   comments: Comment[];
-  // Assinatura de onAddComment MODIFICADA para aceitar um arquivo de imagem opcional
   onAddComment: (commentText: string, imageFile?: File | null) => void;
   isUserAuthenticated?: boolean;
   isLoadingComment?: boolean;
@@ -54,13 +54,11 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      // Validação simples de tipo e tamanho (exemplo)
       if (!file.type.startsWith("image/")) {
         alert("Por favor, selecione um arquivo de imagem.");
         return;
       }
       if (file.size > 2 * 1024 * 1024) {
-        // Limite de 2MB como exemplo
         alert("A imagem é muito grande. O limite é 2MB.");
         return;
       }
@@ -83,7 +81,6 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if ((newComment.trim() === "" && !imageFile) || isLoadingComment) return;
-
     onAddComment(newComment.trim(), imageFile);
     setNewComment("");
     removeSelectedImage();
@@ -134,7 +131,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
               htmlFor="comment-image-upload"
               disabled={isLoadingComment}
             >
-              <Paperclip size={18} /> Anexar Imagem
+              <Paperclip size={18} />
             </FileInputLabel>
             <input
               type="file"
@@ -160,19 +157,20 @@ const CommentSection: React.FC<CommentSectionProps> = ({
       <CommentsList>
         {comments.map((comment) => (
           <CommentItem key={comment.id}>
-            <CommentAvatar
-              src={
-                comment.authorAvatar || "/placeholder.svg?height=40&width=40"
-              }
-              alt={comment.author}
-            />
+            <Link to={`/perfil/${comment.authorId}`}>
+              <CommentAvatar
+                src={
+                  comment.authorAvatar || "/placeholder.svg?height=40&width=40"
+                }
+                alt={comment.author}
+              />
+            </Link>
             <div>
               <CommentHeader>
                 <CommentAuthor>{comment.author}</CommentAuthor>
                 <CommentTime>{comment.time}</CommentTime>
               </CommentHeader>
               <CommentContent>{comment.content}</CommentContent>
-              {/* Exibir imagem anexada se houver */}
               {comment.attachedImageUrl && (
                 <img
                   src={comment.attachedImageUrl}

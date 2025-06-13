@@ -1,4 +1,5 @@
 import type React from "react";
+import { Link } from "react-router-dom";
 import {
   ParticipantsContainer,
   ParticipantsHeader,
@@ -9,7 +10,7 @@ import {
 } from "./styles";
 
 interface Participant {
-  id: number;
+  id: string;
   name: string;
   avatar: string;
 }
@@ -32,13 +33,19 @@ const ParticipantsList: React.FC<ParticipantsListProps> = ({
 
       <ParticipantsGrid>
         {participants.map((participant) => (
-          <ParticipantItem key={participant.id}>
-            <ParticipantAvatar
-              src={participant.avatar}
-              alt={participant.name}
-            />
-            <ParticipantName>{participant.name}</ParticipantName>
-          </ParticipantItem>
+          <Link
+            to={`/perfil/${participant.id}`}
+            key={participant.id}
+            style={{ textDecoration: "none", color: "inherit" }}
+          >
+            <ParticipantItem>
+              <ParticipantAvatar
+                src={participant.avatar}
+                alt={participant.name}
+              />
+              <ParticipantName>{participant.name}</ParticipantName>
+            </ParticipantItem>
+          </Link>
         ))}
       </ParticipantsGrid>
     </ParticipantsContainer>

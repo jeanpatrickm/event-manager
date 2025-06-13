@@ -21,7 +21,7 @@ import EventInfo from "../../components/EventDetails/EventInfo";
 import ParticipantsList from "../../components/EventDetails/ParticipantsList";
 import CommentSection from "../../components/EventDetails/ComentSection";
 
-// --- INÍCIO DAS INTERFACES (CommentDBData ATUALIZADA) ---
+// --- INTERFACES ---
 interface OrganizerData {
   user_id: string;
   nome_completo: string;
@@ -68,7 +68,6 @@ interface CommentDBData {
   autor_avatar: string | null;
   attachedImageUrl?: string | null;
 }
-// --- FIM DAS INTERFACES ---
 
 type EventStatus = "upcoming" | "ongoing" | "past" | "undefined";
 
@@ -181,14 +180,13 @@ const EventDetails: React.FC = () => {
           setIsJoined(false);
         }
 
-        // BUSCAR COMENTÁRIOS E SUAS IMAGENS ANEXADAS
         const { data: commentsData, error: commentsError } = await supabase
           .from("comentario")
           .select(
             `
             comentario_id, texto, data, user_id, evento_id, foto_id,
             usuario:user_id (user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario),
-            galeria_item:foto_id (foto_id, foto_url) /* Tenta fazer o join com galeria usando comentario.foto_id = galeria.foto_id */
+            galeria_item:foto_id (foto_id, foto_url)
           `
           )
           .eq("evento_id", eventId)
@@ -211,8 +209,6 @@ const EventDetails: React.FC = () => {
               c.usuario.nome_usuario ||
               "Usuário",
             autor_avatar: c.usuario.foto_perfil,
-            // 'galeria_item' pode ser null ou um objeto se o join funcionar (ou um array se a relação não for 1-para-1 unicamente).
-            // Ajuste o acesso a foto_url conforme a estrutura retornada por Supabase/PostgREST.
             attachedImageUrl: c.galeria_item
               ? Array.isArray(c.galeria_item)
                 ? c.galeria_item[0]?.foto_url
@@ -312,7 +308,6 @@ const EventDetails: React.FC = () => {
     }
   };
 
-  // FUNÇÃO handleAddComment ATUALIZADA PARA LIDAR COM UPLOAD DE IMAGEM
   const handleAddComment = async (
     commentText: string,
     imageFile?: File | null
@@ -325,7 +320,6 @@ const EventDetails: React.FC = () => {
       alert("Dados do evento não estão carregados.");
       return;
     }
-    // Permite comentário se houver texto OU imagem
     if (commentText.trim() === "" && !imageFile) {
       alert("Adicione um texto ou uma imagem para o seu comentário.");
       return;
@@ -335,7 +329,6 @@ const EventDetails: React.FC = () => {
     let newUploadedFotoIdFromGaleria: string | null = null;
 
     try {
-      // 1. Se houver imagem, faz upload e registra na galeria
       if (imageFile) {
         const fileExt = imageFile.name.split(".").pop();
         const imgFileName = `comment_${
@@ -358,7 +351,6 @@ const EventDetails: React.FC = () => {
           .getPublicUrl(imgFilePath);
         const imageUrl = urlData.publicUrl;
 
-        // Gera um UUID para galeria.foto_id (que é o que comentario.foto_id referencia)
         const generatedFotoIdForGaleriaTable = crypto.randomUUID();
 
         const { data: galeriaEntry, error: galeriaError } = await supabase
@@ -370,7 +362,6 @@ const EventDetails: React.FC = () => {
             foto_url: imageUrl,
             legenda:
               commentText.trim().substring(0, 50) || `Anexo de comentário`,
-            // data_upload na tabela galeria deve ter default now()
           })
           .select("foto_id")
           .single();
@@ -390,7 +381,6 @@ const EventDetails: React.FC = () => {
         newUploadedFotoIdFromGaleria = galeriaEntry.foto_id;
       }
 
-      // 2. Insere o comentário na tabela 'comentario'
       const { data: newCommentData, error: insertError } = await supabase
         .from("comentario")
         .insert({
@@ -401,9 +391,9 @@ const EventDetails: React.FC = () => {
         })
         .select(
           `
-            comentario_id, texto, data, user_id, evento_id, foto_id,
-            usuario:user_id (user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario),
-            galeria_item:foto_id (foto_id, foto_url)
+          comentario_id, texto, data, user_id, evento_id, foto_id,
+          usuario:user_id (user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario),
+          galeria_item:foto_id (foto_id, foto_url)
         `
         )
         .single();
@@ -442,7 +432,6 @@ const EventDetails: React.FC = () => {
   };
 
   const getEventStatus = (): EventStatus => {
-    /* ... (lógica inalterada) ... */
     if (!eventData?.data_evento) return "undefined";
     const eventDateTimeStr = `${eventData.data_evento.split("T")[0]}T${
       eventData.horario
@@ -514,8 +503,10 @@ const EventDetails: React.FC = () => {
             alt={eventData.titulo}
           />
           <EventTitle>{eventData.titulo}</EventTitle>
+
           {eventData.organizador && (
             <EventOrganizer
+              userId={eventData.organizador.user_id}
               name={eventData.organizador.nome_completo}
               avatar={
                 eventData.organizador.foto_perfil ||
@@ -523,7 +514,9 @@ const EventDetails: React.FC = () => {
               }
             />
           )}
+
           <EventDescription>{eventData.descricao}</EventDescription>
+
           <EventInfo
             date={displayDate}
             time={displayTime}
@@ -545,6 +538,7 @@ const EventDetails: React.FC = () => {
             onJoin={handleJoinEvent}
             isLoadingJoin={loadingInteraction}
           />
+
           <ParticipantsList
             participants={participants.map((p) => ({
               id: p.user_id,
@@ -553,9 +547,11 @@ const EventDetails: React.FC = () => {
             }))}
             totalParticipants={participants.length}
           />
+
           <CommentSection
             comments={comments.map((c) => ({
               id: c.comentario_id,
+              authorId: c.user_id,
               author: c.autor_nome,
               authorAvatar:
                 c.autor_avatar || "/placeholder.svg?height=40&width=40",

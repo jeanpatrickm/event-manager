@@ -29,14 +29,16 @@ interface ProfileHeaderProps {
   avatarUrl: string;
   bannerUrl?: string;
   events: number;
+  instagramLink?: string | null;
+  linkedinLink?: string | null;
+
+  // Props para o dono do perfil
+  isOwner: boolean;
   onAvatarChange: (e: ChangeEvent<HTMLInputElement>) => void;
   onAvatarUpload: () => Promise<void>;
   newAvatarSelected: boolean;
   isUploadingAvatar: boolean;
   uploadError?: string | null;
-  instagramLink?: string | null;
-  linkedinLink?: string | null;
-
   onEditClick: () => void;
 }
 
@@ -46,35 +48,45 @@ const ProfileHeader: FC<ProfileHeaderProps> = ({
   avatarUrl,
   bannerUrl,
   events,
+  instagramLink,
+  linkedinLink,
+  isOwner,
   onAvatarChange,
   onAvatarUpload,
   newAvatarSelected,
   isUploadingAvatar,
   uploadError,
-  instagramLink,
-  linkedinLink,
-
   onEditClick,
 }) => {
-  const fileInputId = "avatar-upload-profile";
+  const fileInputId = `avatar-upload-${username}`;
 
   return (
     <ProfileHeaderContainer>
       <ProfileBanner bannerUrl={bannerUrl} />
       <ProfileInfo>
-        <ClickableAvatarWrapper htmlFor={fileInputId} tabIndex={0}>
+        <ClickableAvatarWrapper
+          // A label só funciona para o dono do perfil
+          htmlFor={isOwner ? fileInputId : undefined}
+          as={isOwner ? "label" : "div"}
+          tabIndex={isOwner ? 0 : -1}
+        >
           <ProfileAvatar src={avatarUrl} alt={`${displayName}'s avatar`} />
-          <AvatarOverlay>
-            <Camera size={24} />
-          </AvatarOverlay>
+          {isOwner && (
+            <AvatarOverlay>
+              <Camera size={24} />
+            </AvatarOverlay>
+          )}
         </ClickableAvatarWrapper>
-        <HiddenFileInput
-          id={fileInputId}
-          type="file"
-          accept="image/png, image/jpeg, image/gif, image/webp"
-          onChange={onAvatarChange}
-          disabled={isUploadingAvatar}
-        />
+
+        {isOwner && (
+          <HiddenFileInput
+            id={fileInputId}
+            type="file"
+            accept="image/png, image/jpeg, image/gif, image/webp"
+            onChange={onAvatarChange}
+            disabled={isUploadingAvatar}
+          />
+        )}
 
         <div>
           <ProfileName>{displayName}</ProfileName>
@@ -88,7 +100,7 @@ const ProfileHeader: FC<ProfileHeaderProps> = ({
           </StatItem>
         </ProfileStats>
 
-        {(newAvatarSelected || uploadError) && (
+        {isOwner && (newAvatarSelected || uploadError) && (
           <UploadControlsContainer>
             {newAvatarSelected && (
               <SaveAvatarButton
@@ -106,10 +118,12 @@ const ProfileHeader: FC<ProfileHeaderProps> = ({
         )}
 
         <ProfileActions>
-          <ActionButton type="button" onClick={onEditClick}>
-            <Edit size={14} />
-            Editar Perfil
-          </ActionButton>
+          {isOwner && (
+            <ActionButton type="button" onClick={onEditClick}>
+              <Edit size={14} />
+              Editar Perfil
+            </ActionButton>
+          )}
 
           {instagramLink && (
             <ActionButton

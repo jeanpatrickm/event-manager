@@ -2,7 +2,7 @@
 
 import type React from "react";
 import { useEffect, useState, ChangeEvent, FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ProfileContainer,
   ProfileContent,
@@ -21,6 +21,7 @@ import TabNavigation from "../../components/Perfil/TabNavigation";
 import { Container } from "../Home/styles";
 import Sidebar from "../../components/CreateEvent/SideBar";
 import { supabase } from "../../lib/supabase";
+import { User } from "@supabase/supabase-js";
 
 interface UserProfile {
   user_id: string;
@@ -52,7 +53,9 @@ interface EditProfileFormData {
 }
 
 const ProfilePage: React.FC = () => {
+  const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
+
   const [profileData, setProfileData] = useState<UserProfile | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [profileErrorMsg, setProfileErrorMsg] = useState<string | null>(null);
@@ -79,13 +82,14 @@ const ProfilePage: React.FC = () => {
   const [updateProfileError, setUpdateProfileError] = useState<string | null>(
     null
   );
-
   const [isEditing, setIsEditing] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
     const fetchAllData = async () => {
       setLoadingProfile(true);
       setLoadingEvents(true);
+      setProfileData(null);
       setProfileErrorMsg(null);
       setEventsErrorMsg(null);
       setUploadError(null);
@@ -95,10 +99,17 @@ const ProfilePage: React.FC = () => {
           data: { user: loggedInUser },
           error: authError,
         } = await supabase.auth.getUser();
-        if (authError || !loggedInUser) {
-          console.error("Usuário não autenticado:", authError?.message);
-          setProfileErrorMsg("Você precisa estar logado para ver esta página.");
-          setProfileData(null);
+        if (authError) {
+          console.error("Erro de autenticação:", authError?.message);
+        }
+        setCurrentUser(loggedInUser);
+
+        const idToFetch = userId || loggedInUser?.id;
+
+        if (!idToFetch) {
+          setProfileErrorMsg(
+            "Não foi possível identificar o perfil a ser exibido."
+          );
           setLoadingProfile(false);
           setLoadingEvents(false);
           return;
@@ -109,36 +120,31 @@ const ProfilePage: React.FC = () => {
           .select(
             "user_id, nome_usuario, email, primeiro_nome, sobrenome, foto_perfil, biografia, data_criacao, data_atualizacao, instagram_link, linkedin_link"
           )
-          .eq("user_id", loggedInUser.id)
+          .eq("user_id", idToFetch)
           .single();
 
         if (fetchProfileError && fetchProfileError.code !== "PGRST116") {
           throw fetchProfileError;
         }
 
-        const profileToUse = userProfile || {
-          user_id: loggedInUser.id,
-          nome_usuario: loggedInUser.email?.split("@")[0] || "novo_usuario",
-          email: loggedInUser.email,
-          primeiro_nome: "",
-          sobrenome: "",
-          foto_perfil: null,
-          biografia: "",
-          instagram_link: "",
-          linkedin_link: "",
-        };
+        if (!userProfile) {
+          setProfileErrorMsg("Perfil não encontrado.");
+          setLoadingProfile(false);
+          setLoadingEvents(false);
+          return;
+        }
 
-        setProfileData(profileToUse as UserProfile);
+        setProfileData(userProfile);
         setEditFormData({
-          primeiro_nome: profileToUse.primeiro_nome || "",
-          sobrenome: profileToUse.sobrenome || "",
-          nome_usuario: profileToUse.nome_usuario || "",
-          biografia: profileToUse.biografia || "",
-          instagram_link: profileToUse.instagram_link || "",
-          linkedin_link: profileToUse.linkedin_link || "",
+          primeiro_nome: userProfile.primeiro_nome || "",
+          sobrenome: userProfile.sobrenome || "",
+          nome_usuario: userProfile.nome_usuario || "",
+          biografia: userProfile.biografia || "",
+          instagram_link: userProfile.instagram_link || "",
+          linkedin_link: userProfile.linkedin_link || "",
         });
         setAvatarPreview(
-          profileToUse.foto_perfil || "/images/default-avatar.png"
+          userProfile.foto_perfil || "/images/default-avatar.png"
         );
         setLoadingProfile(false);
 
@@ -148,12 +154,12 @@ const ProfilePage: React.FC = () => {
             .select(
               "evento_id, titulo, descricao, image_capa, max_participantes"
             )
-            .eq("user_id", loggedInUser.id)
+            .eq("user_id", idToFetch)
             .order("data_criacao", { ascending: false }),
           supabase
             .from("inscricao")
             .select("evento_id")
-            .eq("user_id", loggedInUser.id),
+            .eq("user_id", idToFetch),
         ]);
 
         if (createdRes.error) {
@@ -193,7 +199,7 @@ const ProfilePage: React.FC = () => {
       }
     };
     fetchAllData();
-  }, []);
+  }, [userId]);
 
   const handleAvatarChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -270,14 +276,11 @@ const ProfilePage: React.FC = () => {
     if (!profileData) return;
     setIsUpdatingProfile(true);
     setUpdateProfileError(null);
-
-    // ... (lógica de validação e update continua a mesma) ...
     if (!editFormData.nome_usuario.trim()) {
       setUpdateProfileError("Nome de usuário é obrigatório.");
       setIsUpdatingProfile(false);
       return;
     }
-
     try {
       const updates = {
         primeiro_nome: editFormData.primeiro_nome.trim() || null,
@@ -316,7 +319,6 @@ const ProfilePage: React.FC = () => {
   const tabs = [
     {
       id: "created",
-      //...
       label: `Eventos Criados (${createdEvents.length})`,
       content: (
         <>
@@ -353,7 +355,6 @@ const ProfilePage: React.FC = () => {
     },
     {
       id: "joined",
-      //...
       label: `Eventos Participando (${joinedEvents.length})`,
       content: (
         <>
@@ -396,7 +397,7 @@ const ProfilePage: React.FC = () => {
           <SectionTitle>Sobre Mim</SectionTitle>
           <p style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
             {profileData?.biografia ||
-              "Você ainda não adicionou uma biografia."}
+              "Este usuário ainda não adicionou uma biografia."}
           </p>
           <p
             style={{
@@ -415,36 +416,22 @@ const ProfilePage: React.FC = () => {
     },
   ];
 
-  if (loadingProfile && !profileData) {
+  if (loadingProfile) {
     return (
       <Container>
         <Sidebar />
         <ProfileContainer>
-          <div
-            style={{
-              textAlign: "center",
-              padding: "50px",
-              color: "var(--white)",
-            }}
-          >
-            Carregando...
-          </div>
+          <div>Carregando...</div>
         </ProfileContainer>
       </Container>
     );
   }
-  if (profileErrorMsg && !profileData) {
+  if (profileErrorMsg) {
     return (
       <Container>
         <Sidebar />
         <ProfileContainer>
-          <div
-            style={{
-              textAlign: "center",
-              padding: "50px",
-              color: "var(--white)",
-            }}
-          >
+          <div>
             <h2>Erro</h2>
             <p>{profileErrorMsg}</p>
           </div>
@@ -463,6 +450,13 @@ const ProfilePage: React.FC = () => {
     );
   }
 
+  // 2. VERIFICAÇÃO MAIS SEGURA para saber se é o dono do perfil
+  const isMyOwnProfile = !!(
+    currentUser &&
+    profileData &&
+    currentUser.id === profileData.user_id
+  );
+
   return (
     <Container>
       <Sidebar />
@@ -477,17 +471,18 @@ const ProfilePage: React.FC = () => {
           avatarUrl={avatarPreview || "/images/default-avatar.png"}
           bannerUrl={undefined}
           events={createdEvents.length}
+          instagramLink={profileData.instagram_link}
+          linkedinLink={profileData.linkedin_link}
+          isOwner={isMyOwnProfile}
           onAvatarChange={handleAvatarChange}
           onAvatarUpload={handleAvatarUpload}
           newAvatarSelected={!!newAvatarFile}
           isUploadingAvatar={isUploadingAvatar}
           uploadError={uploadError}
-          instagramLink={profileData.instagram_link}
-          linkedinLink={profileData.linkedin_link}
           onEditClick={() => setIsEditing(true)}
         />
 
-        {isEditing ? (
+        {isEditing && isMyOwnProfile ? (
           <ProfileContent>
             <EditForm onSubmit={handleProfileUpdateSubmit}>
               <SectionTitle style={{ marginBottom: "20px" }}>
