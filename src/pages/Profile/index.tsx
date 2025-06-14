@@ -22,7 +22,7 @@ import { Container } from "../Home/styles";
 import Sidebar from "../../components/CreateEvent/SideBar";
 import { supabase } from "../../lib/supabase";
 import { User } from "@supabase/supabase-js";
-import TopBar from "../../components/Perfil/TopBar";
+import TopBar from "../../components/CreateEvent/TopBar";
 
 interface UserProfile {
   user_id: string;

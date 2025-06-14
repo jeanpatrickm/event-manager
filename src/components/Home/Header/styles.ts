@@ -16,13 +16,9 @@ export const SearchContainer = styled.div`
   background-color: #2a293b;
   border-radius: 20px;
   padding: 8px 15px;
-
-  /* --- SUAS ALTERAÇÕES ESTÃO AQUI --- */
-
-  /* width: 300px; (REMOVIDO) */
-  flex-grow: 1; /* Faz o container crescer para ocupar o espaço livre */
-  margin: 0 40px; /* Adiciona um respiro nas laterais (entre a sidebar e os ícones) */
-  max-width: 700px; /* Impede que a barra fique grande demais em telas muito largas */
+  flex-grow: 1;
+  margin: 0 40px;
+  max-width: 700px;
 `;
 
 export const SearchInput = styled.input`
@@ -44,6 +40,7 @@ export const IconsContainer = styled.div`
 `;
 
 export const IconButton = styled.button`
+  position: relative;
   background: transparent;
   border: none;
   color: white;
@@ -67,7 +64,22 @@ export const IconButton = styled.button`
   }
 `;
 
-// ---  ESTILOS PARA O DROPDOWN ---
+export const NotificationBadge = styled.span`
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background-color: var(--color-danger);
+  color: white;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  font-size: 10px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--background-dark-e);
+`;
 
 export const DropdownMenu = styled.div`
   position: absolute;

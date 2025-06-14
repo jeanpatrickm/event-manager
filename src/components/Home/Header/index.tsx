@@ -8,28 +8,57 @@ import {
   IconButton,
   DropdownMenu,
   DropdownMenuItem,
+  NotificationBadge,
 } from "./styles";
-import { Search, Bell, Settings, LogOut } from "lucide-react";//, MessageCircle
+import { Search, Bell, Settings, LogOut } from "lucide-react";
 import { supabase } from "../../../lib/supabase";
+import { useNotifications } from "../../../hooks/useNotifications";
+import Notifications from "../../Notifications";
+import { User } from "@supabase/supabase-js";
 
-// 1. Definimos a interface para as novas props que o Header vai receber
 interface HeaderProps {
   searchTerm: string;
   onSearchChange: (term: string) => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ searchTerm, onSearchChange }) => {
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const navigate = useNavigate();
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const settingsRef = useRef<HTMLDivElement>(null);
+  const notificationsRef = useRef<HTMLDivElement>(null);
 
-  // 2. Criamos a função que avisa o componente pai sobre a mudança no input
+  useEffect(() => {
+    const getSession = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setCurrentUser(user);
+    };
+    getSession();
+  }, []);
+
+  const {
+    notifications,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification, // Pega a nova função do hook
+  } = useNotifications(currentUser?.id);
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onSearchChange(e.target.value);
   };
 
   const handleToggleSettingsDropdown = () => {
     setShowSettingsDropdown((prev) => !prev);
+    setShowNotifications(false);
+  };
+
+  const handleToggleNotifications = () => {
+    setShowNotifications((prev) => !prev);
+    setShowSettingsDropdown(false);
   };
 
   const handleLogout = async () => {
@@ -39,7 +68,6 @@ const Header: React.FC<HeaderProps> = ({ searchTerm, onSearchChange }) => {
         console.error("Erro ao fazer logout:", error.message);
       } else {
         setShowSettingsDropdown(false);
-        console.log("Logout realizado com sucesso!");
         navigate("/login");
       }
     } catch (err) {
@@ -50,27 +78,27 @@ const Header: React.FC<HeaderProps> = ({ searchTerm, onSearchChange }) => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
+        settingsRef.current &&
+        !settingsRef.current.contains(event.target as Node)
       ) {
         setShowSettingsDropdown(false);
       }
+      if (
+        notificationsRef.current &&
+        !notificationsRef.current.contains(event.target as Node)
+      ) {
+        setShowNotifications(false);
+      }
     };
 
-    if (showSettingsDropdown) {
-      document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
-    }
-
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [showSettingsDropdown]);
+  }, []);
 
   return (
     <HeaderContainer>
-
       <SearchContainer id="search-container-header">
         <Search size={18} color="#666" />
         <SearchInput
@@ -81,13 +109,35 @@ const Header: React.FC<HeaderProps> = ({ searchTerm, onSearchChange }) => {
       </SearchContainer>
 
       <IconsContainer>
-        <IconButton aria-label="Notificações" id="nav-notifications">
-          <Bell size={20} />
-        </IconButton>
-        {/* <IconButton aria-label="Mensagens">
-          <MessageCircle size={20} />
-        </IconButton> */}
-        <div style={{ position: "relative" }} ref={dropdownRef} id="nav-config">
+        <div
+          style={{ position: "relative" }}
+          ref={notificationsRef}
+          id="nav-notifications"
+        >
+          <IconButton
+            aria-label="Notificações"
+            onClick={handleToggleNotifications}
+          >
+            <Bell size={20} />
+            {unreadCount > 0 && (
+              <NotificationBadge>{unreadCount}</NotificationBadge>
+            )}
+          </IconButton>
+          {showNotifications && (
+            <Notifications
+              notifications={notifications}
+              onMarkAsRead={markAsRead}
+              onMarkAllAsRead={markAllAsRead}
+              onDelete={deleteNotification} // Passa a função de deletar como prop
+            />
+          )}
+        </div>
+
+        <div
+          style={{ position: "relative" }}
+          ref={settingsRef}
+          id="nav-config"
+        >
           <IconButton
             aria-label="Configurações"
             onClick={handleToggleSettingsDropdown}
@@ -111,3 +161,4 @@ const Header: React.FC<HeaderProps> = ({ searchTerm, onSearchChange }) => {
 };
 
 export default Header;
+

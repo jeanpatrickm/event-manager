@@ -5,7 +5,7 @@ import {
   // SearchInput,
   // SearchIcon,
   ActionsContainer,
-  ActionButton,
+  NotificationBadge,
 } from "./styles";
 import {
   IconButton,
@@ -15,15 +15,23 @@ import {
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../../lib/supabase";
+import Notifications from "../../Notifications";
+import { useNotifications } from "../../../hooks/useNotifications";
+import { User } from "@supabase/supabase-js";
 
 const TopBar: React.FC = () => {
   // Dados do usuário (você pode receber via props ou contexto)
   const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
   const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const notificationsRef = useRef<HTMLDivElement>(null);
+  const [showNotifications, setShowNotifications] = useState(false);
+    const [currentUser, setCurrentUser] = useState<User | null>(null);
+  
 
   const handleToggleSettingsDropdown = () => {
     setShowSettingsDropdown((prev) => !prev);
+    setShowNotifications(false);
   };
 
   const handleLogout = async () => {
@@ -42,12 +50,41 @@ const TopBar: React.FC = () => {
   };
 
   useEffect(() => {
+      const getSession = async () => {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        setCurrentUser(user);
+      };
+      getSession();
+    }, []);
+
+  const {
+      notifications,
+      unreadCount,
+      markAsRead,
+      markAllAsRead,
+      deleteNotification, // Pega a nova função do hook
+    } = useNotifications(currentUser?.id);
+
+  const handleToggleNotifications = () => {
+    setShowNotifications((prev) => !prev);
+    setShowSettingsDropdown(false);
+  };
+
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node)
       ) {
         setShowSettingsDropdown(false);
+      }
+      if (
+        notificationsRef.current &&
+        !notificationsRef.current.contains(event.target as Node)
+      ) {
+        setShowNotifications(false);
       }
     };
 
@@ -70,9 +107,32 @@ const TopBar: React.FC = () => {
       </SearchContainer> */}
 
       <ActionsContainer>
-        <ActionButton>
+        {/* <ActionButton>
           <Bell size={20} />
-        </ActionButton>
+        </ActionButton> */}
+        <div
+          style={{ position: "relative" }}
+          ref={notificationsRef}
+          id="nav-notifications"
+        >
+          <IconButton
+            aria-label="Notificações"
+            onClick={handleToggleNotifications}
+          >
+            <Bell size={20} />
+            {unreadCount > 0 && (
+              <NotificationBadge>{unreadCount}</NotificationBadge>
+            )}
+          </IconButton>
+          {showNotifications && (
+            <Notifications
+              notifications={notifications}
+              onMarkAsRead={markAsRead}
+              onMarkAllAsRead={markAllAsRead}
+              onDelete={deleteNotification} // Passa a função de deletar como prop
+            />
+          )}
+        </div>
 
         {/* <ActionButton>
           <MessageCircle size={20} />

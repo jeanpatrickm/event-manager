@@ -92,3 +92,20 @@ export const UserTag = styled.span`
   font-size: 12px;
   color: var(--user-tag-span);
 `;
+
+export const NotificationBadge = styled.span`
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background-color: var(--color-danger);
+  color: white;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  font-size: 10px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--background-dark-e);
+`;

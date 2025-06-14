@@ -2,6 +2,7 @@ import "./styles/globals.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 
 import Home from "./pages/Home";
 import LoginPage from "./pages/Login";
@@ -30,7 +31,6 @@ const router = createBrowserRouter([
     ),
   },
   {
-    // Rota para ver o perfil de qualquer usuário (com ID na URL)
     path: "/perfil/:userId",
     element: (
       <ProtectedRoute>
@@ -79,6 +79,7 @@ const root = createRoot(rootElement);
 
 root.render(
   <StrictMode>
+    <Toaster position="top-right" reverseOrder={false} />
     <RouterProvider router={router} />
   </StrictMode>
 );
