@@ -98,12 +98,6 @@ const EventInfo: React.FC<EventInfoProps> = ({
         </InfoItem>
         <InfoItem>
           <InfoLabel>
-            <MapPin size={18} /> Local
-          </InfoLabel>
-          <InfoValue>{location}</InfoValue>
-        </InfoItem>
-        <InfoItem>
-          <InfoLabel>
             <Users size={18} /> Participantes
           </InfoLabel>
           <InfoValue>
@@ -115,6 +109,12 @@ const EventInfo: React.FC<EventInfoProps> = ({
             <Tag size={18} /> Categoria
           </InfoLabel>
           <InfoValue>{category}</InfoValue>
+        </InfoItem>
+        <InfoItem>
+          <InfoLabel>
+            <MapPin size={18} /> Local
+          </InfoLabel>
+          <InfoValue>{location}</InfoValue>
         </InfoItem>
       </InfoGrid>
 

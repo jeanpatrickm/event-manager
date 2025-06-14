@@ -281,11 +281,11 @@ const CreateEvent: React.FC = () => {
       }
 
       const categoryMap: Record<string, number> = {
-        game: 1,
-        art: 2,
-        nft: 3,
-        vr: 4,
-        other: 5,
+        "Game Play": 1,
+        "Arte": 2,
+        "nfNFTt": 3,
+        "Virtual Reality": 4,
+        "Outro": 5,
       };
 
       const eventDataPayload = {
@@ -589,11 +589,11 @@ const CreateEvent: React.FC = () => {
                   disabled={isSubmitting}
                 >
                   <option value="">Selecione uma categoria</option>
-                  <option value="game">Game Play</option>
-                  <option value="art">3D Art</option>
-                  <option value="nft">NFT</option>
-                  <option value="vr">Virtual Reality</option>
-                  <option value="other">Outro</option>
+                  <option value="Game Play">Game Play</option>
+                  <option value="Arte">Arte</option>
+                  <option value="NFT">NFT</option>
+                  <option value="Virtual Reality">Virtual Reality</option>
+                  <option value="Outro">Outro</option>
                 </Input>
               </InputGroup>
               <InputGroup>

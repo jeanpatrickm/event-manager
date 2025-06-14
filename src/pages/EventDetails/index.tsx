@@ -26,10 +26,6 @@ interface OrganizerData {
   nome_completo: string;
   foto_perfil: string | null;
 }
-interface CategoryData {
-  cod_categoria: number;
-  categoria: string;
-}
 interface DetailedEventData {
   evento_id: string;
   titulo: string;
@@ -43,9 +39,9 @@ interface DetailedEventData {
   link_online: string | null;
   user_id: string;
   cod_categoria: number;
+  categoria: string | null; // 1. Adicionado o campo de categoria como string
   tags: string | null;
   organizador?: OrganizerData;
-  categoria_info?: CategoryData;
 }
 interface ParticipantData {
   user_id: string;
@@ -108,15 +104,17 @@ const EventDetails: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
+        // 2. Simplificada a query para buscar a coluna 'categoria' diretamente
         const { data: eventResult, error: eventError } = await supabase
           .from("eventos")
           .select(
-            `*, usuario:user_id (user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario), categoria_info:cod_categoria (cod_categoria, categoria)`
+            `*, usuario:user_id (user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario)`
           )
           .eq("evento_id", eventId)
           .single();
         if (eventError) throw eventError;
         if (!eventResult) throw new Error("Evento não encontrado.");
+
         const fetchedEventData: DetailedEventData = {
           ...eventResult,
           organizador: eventResult.usuario
@@ -129,12 +127,6 @@ const EventDetails: React.FC = () => {
                   eventResult.usuario.nome_usuario ||
                   "Organizador",
                 foto_perfil: eventResult.usuario.foto_perfil,
-              }
-            : undefined,
-          categoria_info: eventResult.categoria_info
-            ? {
-                cod_categoria: eventResult.categoria_info.cod_categoria,
-                categoria: eventResult.categoria_info.categoria,
               }
             : undefined,
         };
@@ -528,7 +520,8 @@ const EventDetails: React.FC = () => {
             }
             currentParticipants={participants.length}
             maxParticipants={eventData.max_participantes ?? undefined}
-            category={eventData.categoria_info?.categoria || "Não categorizado"}
+            // 3. Usar o campo de categoria direto da tabela 'eventos'
+            category={eventData.categoria || "Não categorizado"}
             tags={
               eventData.tags
                 ? eventData.tags.split(",").map((tag) => tag.trim())
