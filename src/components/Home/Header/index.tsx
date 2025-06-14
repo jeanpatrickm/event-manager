@@ -9,7 +9,7 @@ import {
   DropdownMenu,
   DropdownMenuItem,
 } from "./styles";
-import { Search, Bell, Settings, LogOut } from "lucide-react";//, MessageCircle
+import { Search, Bell, Settings, LogOut } from "lucide-react"; //, MessageCircle
 import { supabase } from "../../../lib/supabase";
 
 // 1. Definimos a interface para as novas props que o Header vai receber
@@ -70,7 +70,6 @@ const Header: React.FC<HeaderProps> = ({ searchTerm, onSearchChange }) => {
 
   return (
     <HeaderContainer>
-
       <SearchContainer id="search-container-header">
         <Search size={18} color="#666" />
         <SearchInput
@@ -84,9 +83,7 @@ const Header: React.FC<HeaderProps> = ({ searchTerm, onSearchChange }) => {
         <IconButton aria-label="Notificações" id="nav-notifications">
           <Bell size={20} />
         </IconButton>
-        {/* <IconButton aria-label="Mensagens">
-          <MessageCircle size={20} />
-        </IconButton> */}
+
         <div style={{ position: "relative" }} ref={dropdownRef} id="nav-config">
           <IconButton
             aria-label="Configurações"
