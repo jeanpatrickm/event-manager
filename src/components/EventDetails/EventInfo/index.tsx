@@ -1,7 +1,16 @@
 "use client";
 
 import React, { useState } from "react";
-import { Calendar, Clock, MapPin, Users, Tag, Share2, Trash2  } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  Users,
+  Tag,
+  Share2,
+  Trash2,
+  Edit,
+} from "lucide-react";
 import {
   InfoSection,
   InfoGrid,
@@ -28,10 +37,10 @@ interface EventInfoProps {
   isJoined: boolean;
   onJoin: () => void;
   isLoadingJoin: boolean;
-  // p delet
-  sOwner: boolean;
+  isOwner: boolean;
   onDelete: () => void;
   isLoadingDelete: boolean;
+  onEdit: () => void;
 }
 
 const EventInfo: React.FC<EventInfoProps> = ({
@@ -49,6 +58,7 @@ const EventInfo: React.FC<EventInfoProps> = ({
   isOwner,
   onDelete,
   isLoadingDelete,
+  onEdit,
 }) => {
   const [isHoveringUnsubscribe, setIsHoveringUnsubscribe] = useState(false);
 
@@ -137,15 +147,21 @@ const EventInfo: React.FC<EventInfoProps> = ({
           Compartilhar
         </ActionButton>
 
-        {/* --- BOTÃO DE DELETAR --- */}
         {isOwner && (
-          <DeleteEventButton
-            onClick={onDelete}
-            disabled={isLoadingJoin || isLoadingDelete}
-          >
-            <Trash2 size={18} />
-            {isLoadingDelete ? "Excluindo..." : "Excluir Evento"}
-          </DeleteEventButton>
+          <>
+            <ActionButton type="button" onClick={onEdit}>
+              <Edit size={18} />
+              Editar Evento
+            </ActionButton>
+
+            <DeleteEventButton
+              onClick={onDelete}
+              disabled={isLoadingJoin || isLoadingDelete}
+            >
+              <Trash2 size={18} />
+              {isLoadingDelete ? "Excluindo..." : "Excluir Evento"}
+            </DeleteEventButton>
+          </>
         )}
       </ActionButtonsContainer>
     </InfoSection>

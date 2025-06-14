@@ -20,17 +20,16 @@ import EventOrganizer from "../../components/EventDetails/EventOrganizer";
 import EventInfo from "../../components/EventDetails/EventInfo";
 import ParticipantsList from "../../components/EventDetails/ParticipantsList";
 import CommentSection from "../../components/EventDetails/ComentSection";
+
 interface OrganizerData {
   user_id: string;
   nome_completo: string;
   foto_perfil: string | null;
 }
-
 interface CategoryData {
   cod_categoria: number;
   categoria: string;
 }
-
 interface DetailedEventData {
   evento_id: string;
   titulo: string;
@@ -48,13 +47,11 @@ interface DetailedEventData {
   organizador?: OrganizerData;
   categoria_info?: CategoryData;
 }
-
 interface ParticipantData {
   user_id: string;
   nome_completo: string;
   foto_perfil: string | null;
 }
-
 interface CommentDBData {
   comentario_id: string;
   texto: string | null;
@@ -66,7 +63,6 @@ interface CommentDBData {
   autor_avatar: string | null;
   attachedImageUrl?: string | null;
 }
-
 type EventStatus = "upcoming" | "ongoing" | "past" | "undefined";
 
 const EventDetails: React.FC = () => {
@@ -82,11 +78,8 @@ const EventDetails: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loadingInteraction, setLoadingInteraction] = useState(false);
   const [loadingComment, setLoadingComment] = useState(false);
-  // NOVO: Estado para controlar o carregamento da exclusão
   const [loadingDelete, setLoadingDelete] = useState(false);
 
-
-  // ... (useEffect para buscar sessão - sem alterações)
   useEffect(() => {
     const getSession = async () => {
       const {
@@ -105,14 +98,12 @@ const EventDetails: React.FC = () => {
     };
   }, []);
 
-  // ... (useEffect para buscar detalhes do evento )
   useEffect(() => {
     if (!eventId) {
       setError("ID do evento não fornecido.");
       setLoading(false);
       return;
     }
-
     const fetchEventDetails = async () => {
       setLoading(true);
       setError(null);
@@ -124,10 +115,8 @@ const EventDetails: React.FC = () => {
           )
           .eq("evento_id", eventId)
           .single();
-
         if (eventError) throw eventError;
         if (!eventResult) throw new Error("Evento não encontrado.");
-
         const fetchedEventData: DetailedEventData = {
           ...eventResult,
           organizador: eventResult.usuario
@@ -150,7 +139,6 @@ const EventDetails: React.FC = () => {
             : undefined,
         };
         setEventData(fetchedEventData);
-
         const { data: participantsResult, error: participantsError } =
           await supabase
             .from("inscricao")
@@ -158,7 +146,6 @@ const EventDetails: React.FC = () => {
               `user_id, usuario:user_id (user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario)`
             )
             .eq("evento_id", eventId);
-
         if (participantsError) throw participantsError;
         const fetchedParticipants: ParticipantData[] = (
           participantsResult || []
@@ -173,7 +160,6 @@ const EventDetails: React.FC = () => {
           foto_perfil: p.usuario.foto_perfil,
         }));
         setParticipants(fetchedParticipants);
-
         if (
           currentUser &&
           fetchedParticipants.some((p) => p.user_id === currentUser.id)
@@ -182,21 +168,14 @@ const EventDetails: React.FC = () => {
         } else {
           setIsJoined(false);
         }
-
         const { data: commentsData, error: commentsError } = await supabase
           .from("comentario")
           .select(
-            `
-            comentario_id, texto, data, user_id, evento_id, foto_id,
-            usuario:user_id (user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario),
-            galeria_item:foto_id (foto_id, foto_url)
-          `
+            `comentario_id, texto, data, user_id, evento_id, foto_id, usuario:user_id (user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario), galeria_item:foto_id (foto_id, foto_url)`
           )
           .eq("evento_id", eventId)
           .order("data", { ascending: false });
-
         if (commentsError) throw commentsError;
-
         const fetchedComments: CommentDBData[] = (commentsData || []).map(
           (c) => ({
             comentario_id: c.comentario_id,
@@ -229,7 +208,6 @@ const EventDetails: React.FC = () => {
     };
     fetchEventDetails();
   }, [eventId, currentUser]);
-
 
   const handleJoinEvent = async () => {
     if (!currentUser) {
@@ -328,10 +306,8 @@ const EventDetails: React.FC = () => {
       alert("Adicione um texto ou uma imagem para o seu comentário.");
       return;
     }
-
     setLoadingComment(true);
     let newUploadedFotoIdFromGaleria: string | null = null;
-
     try {
       if (imageFile) {
         const fileExt = imageFile.name.split(".").pop();
@@ -340,23 +316,18 @@ const EventDetails: React.FC = () => {
         }_${Date.now()}.${fileExt}`;
         const bucketName = "event-images";
         const imgFilePath = `comment_attachments/${imgFileName}`;
-
         const { error: uploadError } = await supabase.storage
           .from(bucketName)
           .upload(imgFilePath, imageFile);
-
         if (uploadError) {
           console.error("Erro no upload da imagem do comentário:", uploadError);
           throw new Error(`Falha no upload da imagem: ${uploadError.message}`);
         }
-
         const { data: urlData } = supabase.storage
           .from(bucketName)
           .getPublicUrl(imgFilePath);
         const imageUrl = urlData.publicUrl;
-
         const generatedFotoIdForGaleriaTable = crypto.randomUUID();
-
         const { data: galeriaEntry, error: galeriaError } = await supabase
           .from("galeria")
           .insert({
@@ -369,7 +340,6 @@ const EventDetails: React.FC = () => {
           })
           .select("foto_id")
           .single();
-
         if (galeriaError) {
           console.error("Erro ao salvar imagem na galeria:", galeriaError);
           throw new Error(
@@ -381,10 +351,8 @@ const EventDetails: React.FC = () => {
             "Não foi possível obter o ID da foto da galeria após a inserção."
           );
         }
-
         newUploadedFotoIdFromGaleria = galeriaEntry.foto_id;
       }
-
       const { data: newCommentData, error: insertError } = await supabase
         .from("comentario")
         .insert({
@@ -394,16 +362,10 @@ const EventDetails: React.FC = () => {
           foto_id: newUploadedFotoIdFromGaleria,
         })
         .select(
-          `
-          comentario_id, texto, data, user_id, evento_id, foto_id,
-          usuario:user_id (user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario),
-          galeria_item:foto_id (foto_id, foto_url)
-        `
+          `comentario_id, texto, data, user_id, evento_id, foto_id, usuario:user_id (user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario), galeria_item:foto_id (foto_id, foto_url)`
         )
         .single();
-
       if (insertError) throw insertError;
-
       if (newCommentData) {
         const addedComment: CommentDBData = {
           comentario_id: newCommentData.comentario_id,
@@ -435,35 +397,28 @@ const EventDetails: React.FC = () => {
     }
   };
 
-
-  // --- FUNÇÃO PARA DELETAR O EVENTO ---
   const handleDeleteEvent = async () => {
     if (!eventData || !currentUser || currentUser.id !== eventData.user_id) {
       alert("Você não tem permissão para excluir este evento.");
       return;
     }
-
     const isConfirmed = window.confirm(
       "Tem certeza que deseja excluir este evento?\nEsta ação não pode ser desfeita e removerá todas as inscrições e comentários associados."
     );
-
     if (!isConfirmed) {
       return;
     }
-
     setLoadingDelete(true);
     try {
       const { error: deleteError } = await supabase
         .from("eventos")
         .delete()
         .match({ evento_id: eventData.evento_id });
-
       if (deleteError) {
         throw deleteError;
       }
-
       alert("Evento excluído com sucesso!");
-      navigate("/"); // Redireciona para a página inicial
+      navigate("/");
     } catch (err: any) {
       console.error("Erro ao excluir evento:", err);
       alert(`Falha ao excluir o evento: ${err.message}`);
@@ -472,8 +427,10 @@ const EventDetails: React.FC = () => {
     }
   };
 
+  const handleEditEvent = () => {
+    navigate(`/edit-event/${eventId}`);
+  };
 
-  // ... (getEventStatus, retornos de loading, error e !eventData )
   const getEventStatus = (): EventStatus => {
     if (!eventData?.data_evento) return "undefined";
     const eventDateTimeStr = `${eventData.data_evento.split("T")[0]}T${
@@ -531,8 +488,6 @@ const EventDetails: React.FC = () => {
       : eventData.horario.substring(0, 5);
   } catch (e) {}
   const eventStatus = getEventStatus();
-
-  // NOVO: Verificação se o usuário logado é o dono do evento
   const isOwner = currentUser?.id === eventData.user_id;
 
   return (
@@ -583,10 +538,10 @@ const EventDetails: React.FC = () => {
             isJoined={isJoined}
             onJoin={handleJoinEvent}
             isLoadingJoin={loadingInteraction}
-            // --- PASSANDO AS NOVAS PROPS ---
             isOwner={isOwner}
             onDelete={handleDeleteEvent}
             isLoadingDelete={loadingDelete}
+            onEdit={handleEditEvent}
           />
 
           <ParticipantsList

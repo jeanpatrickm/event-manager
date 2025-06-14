@@ -1,7 +1,8 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Calendar,
   Clock,
@@ -11,7 +12,6 @@ import {
   Info,
   Tag,
   X,
-  User,
   Globe,
   Lock,
   Monitor,
@@ -44,7 +44,6 @@ import {
 import Sidebar from "../../components/CreateEvent/SideBar";
 import TopBar from "../../components/CreateEvent/TopBar";
 import { supabase } from "../../lib/supabase";
-import { useNavigate } from "react-router-dom";
 
 interface FormData {
   title: string;
@@ -61,7 +60,6 @@ interface FormData {
   eventMode: "online" | "in-person";
   onlineLink?: string;
 }
-
 interface FormErrors {
   title?: string;
   description?: string;
@@ -73,7 +71,10 @@ interface FormErrors {
 }
 
 const CreateEvent: React.FC = () => {
+  const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
+  const isEditMode = !!eventId;
+
   const [formData, setFormData] = useState<FormData>({
     title: "",
     description: "",
@@ -94,6 +95,54 @@ const CreateEvent: React.FC = () => {
   const [currentTag, setCurrentTag] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+
+  useEffect(() => {
+    if (isEditMode) {
+      const fetchEventData = async () => {
+        setIsLoadingData(true);
+        const { data: eventToEdit, error } = await supabase
+          .from("eventos")
+          .select("*")
+          .eq("evento_id", eventId)
+          .single();
+
+        if (error || !eventToEdit) {
+          console.error("Erro ao buscar evento para edição:", error);
+          alert("Não foi possível carregar os dados do evento para edição.");
+          navigate("/");
+          return;
+        }
+
+        setFormData({
+          title: eventToEdit.titulo || "",
+          description: eventToEdit.descricao || "",
+          date: eventToEdit.data_evento
+            ? new Date(eventToEdit.data_evento).toISOString().split("T")[0]
+            : "",
+          time: eventToEdit.horario
+            ? new Date(eventToEdit.horario).toTimeString().substring(0, 5)
+            : "",
+          location: eventToEdit.local || "",
+          maxParticipants: eventToEdit.max_participantes?.toString() || "",
+          category: eventToEdit.categoria || "",
+          tags: eventToEdit.tags
+            ? eventToEdit.tags.split(",").map((t) => t.trim())
+            : [],
+          coverImage: null,
+          organizerName: eventToEdit.nome_organizador || "",
+          eventType: eventToEdit.publico ? "public" : "private",
+          eventMode: eventToEdit.presencial ? "in-person" : "online",
+          onlineLink: eventToEdit.link_online || "",
+        });
+        setImagePreview(eventToEdit.image_capa);
+        setIsLoadingData(false);
+      };
+      fetchEventData();
+    } else {
+      setIsLoadingData(false);
+    }
+  }, [eventId, navigate, isEditMode]);
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -102,7 +151,6 @@ const CreateEvent: React.FC = () => {
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-
     if (errors[name as keyof FormErrors]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
@@ -163,44 +211,30 @@ const CreateEvent: React.FC = () => {
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
-
     if (!formData.title.trim()) {
       newErrors.title = "Título é obrigatório";
     }
-
     if (!formData.description.trim()) {
       newErrors.description = "Descrição é obrigatória";
     }
-
-    // Validação da Data
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
     if (!formData.date) {
       newErrors.date = "Data é obrigatória";
     } else {
       const eventDateObj = new Date(formData.date + "T00:00:00");
       if (isNaN(eventDateObj.getTime())) {
-        // Verifica se a data é inválida
         newErrors.date = "Formato de data inválido.";
-      } else if (eventDateObj < today) {
+      } else if (eventDateObj < today && !isEditMode) {
         newErrors.date = "Data não pode ser no passado.";
       }
     }
-
     if (!formData.time) {
       newErrors.time = "Horário é obrigatório";
     }
-
     if (formData.eventMode === "in-person" && !formData.location.trim()) {
       newErrors.location = "Localização é obrigatória para eventos presenciais";
     }
-
-    // if (!formData.organizerName.trim()) {
-    //   newErrors.organizerName = "Nome do organizador é obrigatório";
-    // }
-
-    // Validação do Link Online
     if (formData.eventMode === "online") {
       const trimmedOnlineLink = formData.onlineLink?.trim();
       if (!trimmedOnlineLink) {
@@ -210,53 +244,40 @@ const CreateEvent: React.FC = () => {
           "Link do evento online inválido. Deve começar com http:// ou https://";
       }
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) {
       alert("Por favor, corrija os erros no formulário.");
       return;
     }
-
     setIsSubmitting(true);
 
-    let currentUserId;
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user)
-        throw new Error(
-          "Usuário não autenticado. Por favor, faça login para criar um evento."
-        );
-      currentUserId = user.id;
-    } catch (authError: any) {
-      console.error("Erro de autenticação:", authError);
-      alert(`Erro de autenticação: ${authError.message}`);
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+    if (authError || !user) {
+      alert("Usuário não autenticado. Por favor, faça login.");
       setIsSubmitting(false);
       return;
     }
 
     try {
-      let imageUrl: string | null = null;
+      let imageUrl: string | undefined = undefined;
       if (formData.coverImage) {
         const fileExt = formData.coverImage.name.split(".").pop();
-        const fileName = `cover_${currentUserId}_${Date.now()}.${fileExt}`;
+        const fileName = `cover_${user.id}_${Date.now()}.${fileExt}`;
         const filePath = `event_covers/${fileName}`;
-
         const { error: uploadError } = await supabase.storage
           .from("event-images")
-          .upload(filePath, formData.coverImage);
-
+          .upload(filePath, formData.coverImage, { upsert: true });
         if (uploadError) throw uploadError;
-
-        const { data: urlData } = supabase.storage
-          .from("event-images")
-          .getPublicUrl(filePath);
-        imageUrl = urlData.publicUrl;
+        imageUrl = supabase.storage.from("event-images").getPublicUrl(filePath)
+          .data.publicUrl;
       }
 
       const categoryMap: Record<string, number> = {
@@ -267,7 +288,7 @@ const CreateEvent: React.FC = () => {
         other: 5,
       };
 
-      const eventDataToInsert = {
+      const eventDataPayload = {
         titulo: formData.title,
         descricao: formData.description,
         data_evento: formData.date,
@@ -284,116 +305,72 @@ const CreateEvent: React.FC = () => {
         categoria: formData.category || null,
         tags: formData.tags.length > 0 ? formData.tags.join(", ") : null,
         nome_organizador: formData.organizerName,
-        image_capa: imageUrl,
         link_online:
           formData.eventMode === "online" && formData.onlineLink?.trim()
             ? formData.onlineLink
             : null,
-        user_id: currentUserId,
+        ...(imageUrl && { image_capa: imageUrl }),
       };
 
-      const { data: novoEvento, error: eventInsertError } = await supabase
-        .from("eventos")
-        .insert([eventDataToInsert])
-        .select()
-        .single();
+      if (isEditMode) {
+        const { error: updateError } = await supabase
+          .from("eventos")
+          .update(eventDataPayload)
+          .eq("evento_id", eventId);
+        if (updateError) throw updateError;
+        alert("Evento atualizado com sucesso!");
+        navigate(`/event-details/${eventId}`);
+      } else {
+        const { data: novoEvento, error: insertError } = await supabase
+          .from("eventos")
+          .insert([{ ...eventDataPayload, user_id: user.id }])
+          .select()
+          .single();
+        if (insertError) throw insertError;
+        if (!novoEvento) throw new Error("Falha ao criar o evento.");
 
-      if (eventInsertError) throw eventInsertError;
-      if (!novoEvento)
-        throw new Error("Falha ao criar o evento ou obter dados de retorno.");
-
-      console.log("Evento criado com sucesso:", novoEvento);
-
-      // --- INÍCIO DA LÓGICA PARA INSCRIÇÃO AUTOMÁTICA ---
-      if (novoEvento.evento_id && currentUserId) {
-        console.log(
-          `Tentando inscrever organizador ${currentUserId} no evento ${novoEvento.evento_id}`
-        );
         const { error: erroInscricao } = await supabase
           .from("inscricao")
-          .insert([
-            {
-              evento_id: novoEvento.evento_id,
-              user_id: currentUserId,
-            },
-          ]);
-
+          .insert([{ evento_id: novoEvento.evento_id, user_id: user.id }]);
         if (erroInscricao) {
-          console.error(
-            "FALHA ao inscrever organizador automaticamente:",
-            erroInscricao
-          );
+          console.error("FALHA ao inscrever organizador:", erroInscricao);
           alert(
-            "Evento criado com sucesso, mas houve um problema ao registrar sua participação automaticamente. Você pode se inscrever manualmente na página do evento se desejar."
+            "Evento criado, mas houve um erro ao te inscrever automaticamente."
           );
         } else {
-          console.log("Organizador inscrito automaticamente no evento!");
-          alert(
-            "Evento criado com sucesso e você foi inscrito automaticamente!"
-          );
+          alert("Evento criado e você foi inscrito automaticamente!");
         }
-      } else {
-        console.warn(
-          "Não foi possível inscrever o organizador automaticamente: eventoId ou criadorId ausente.",
-          { eventoIdCriado: novoEvento?.evento_id, criadorId: currentUserId }
-        );
-        alert("Evento criado com sucesso!");
+        navigate(`/event-details/${novoEvento.evento_id}`);
       }
-      // --- FIM DA LÓGICA PARA INSCRIÇÃO AUTOMÁTICA ---
-
-      setFormData({
-        title: "",
-        description: "",
-        date: "",
-        time: "",
-        location: "",
-        maxParticipants: "",
-        category: "",
-        tags: [],
-        coverImage: null,
-        organizerName: "",
-        eventType: "public",
-        eventMode: "in-person",
-        onlineLink: "",
-      });
-      setImagePreview(null);
-      setErrors({});
-
-      navigate(`/event-details/${novoEvento.evento_id}`);
     } catch (error: any) {
-      console.error("Erro detalhado ao criar evento:", error);
-      alert(`Erro ao criar evento: ${error.message || String(error)}`);
+      console.error("Erro no processo de submissão:", error);
+      alert(`Erro: ${error.message || String(error)}`);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleCancel = () => {
-    if (
-      window.confirm(
-        "Deseja cancelar a criação do evento? Todas as informações não salvas serão perdidas."
-      )
-    ) {
-      setFormData({
-        title: "",
-        description: "",
-        date: "",
-        time: "",
-        location: "",
-        maxParticipants: "",
-        category: "",
-        tags: [],
-        coverImage: null,
-        organizerName: "",
-        eventType: "public",
-        eventMode: "in-person",
-        onlineLink: "",
-      });
-      setImagePreview(null);
-      setErrors({});
-      navigate("/");
+    const confirmationMessage = isEditMode
+      ? "Deseja cancelar a edição? Todas as alterações não salvas serão perdidas."
+      : "Deseja cancelar a criação do evento? Todas as informações não salvas serão perdidas.";
+
+    if (window.confirm(confirmationMessage)) {
+      navigate(isEditMode ? `/event-details/${eventId}` : "/");
     }
   };
+
+  if (isLoadingData) {
+    return (
+      <Container>
+        <Sidebar activeItem="Criar Evento" />
+        <div className="main-content">
+          <TopBar />
+          <FormContainer>Carregando dados do evento...</FormContainer>
+        </div>
+      </Container>
+    );
+  }
 
   return (
     <Container>
@@ -402,29 +379,11 @@ const CreateEvent: React.FC = () => {
         <TopBar />
         <FormContainer>
           <Header>
-            <Title>Criar Novo Evento</Title>
+            <Title>{isEditMode ? "Editar Evento" : "Criar Novo Evento"}</Title>
           </Header>
 
           <form onSubmit={handleSubmit}>
             <FormSection>
-              {/* <InputGroup>
-                <Label htmlFor="organizerName">
-                  <User size={16} /> Nome do Organizador*
-                </Label>
-                <Input
-                  id="organizerName"
-                  name="organizerName"
-                  value={formData.organizerName}
-                  onChange={handleInputChange}
-                  placeholder="Seu nome ou nome da organização"
-                  hasError={!!errors.organizerName}
-                  disabled={isSubmitting}
-                />
-                {errors.organizerName && (
-                  <ErrorMessage>{errors.organizerName}</ErrorMessage>
-                )}
-              </InputGroup> */}
-
               <InputGroup>
                 <Label htmlFor="title">
                   <Info size={16} /> Título do Evento*
@@ -441,7 +400,6 @@ const CreateEvent: React.FC = () => {
                 {errors.title && <ErrorMessage>{errors.title}</ErrorMessage>}
               </InputGroup>
             </FormSection>
-
             <FormSection>
               <InputGroup>
                 <Label htmlFor="description">
@@ -462,7 +420,6 @@ const CreateEvent: React.FC = () => {
                 )}
               </InputGroup>
             </FormSection>
-
             <FormSection>
               <InputGroup>
                 <Label>
@@ -552,7 +509,6 @@ const CreateEvent: React.FC = () => {
                 )}
               </InputGroup>
             </FormSection>
-
             <FormSection>
               <InputGroup>
                 <Label htmlFor="date">
@@ -604,7 +560,6 @@ const CreateEvent: React.FC = () => {
                 </InputGroup>
               )}
             </FormSection>
-
             <FormSection>
               <InputGroup>
                 <Label htmlFor="maxParticipants">
@@ -669,7 +624,6 @@ const CreateEvent: React.FC = () => {
                 </TagsContainer>
               </InputGroup>
             </FormSection>
-
             <FormSection>
               <InputGroup>
                 <Label htmlFor="coverImage">
@@ -697,7 +651,6 @@ const CreateEvent: React.FC = () => {
                 )}
               </InputGroup>
             </FormSection>
-
             <ButtonGroup>
               <Button
                 type="button"
@@ -708,7 +661,13 @@ const CreateEvent: React.FC = () => {
                 Cancelar
               </Button>
               <Button type="submit" variant="primary" disabled={isSubmitting}>
-                {isSubmitting ? "Criando Evento..." : "Criar Evento"}
+                {isSubmitting
+                  ? isEditMode
+                    ? "Salvando..."
+                    : "Criando..."
+                  : isEditMode
+                  ? "Salvar Alterações"
+                  : "Criar Evento"}
               </Button>
             </ButtonGroup>
           </form>
