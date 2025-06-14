@@ -89,7 +89,7 @@ const HomePage: React.FC = () => {
     };
 
     fetchPublicEvents();
-  }, [debouncedTerm]); // IMPORTANTE: A busca só roda quando o termo "atrasado" muda
+  }, [debouncedTerm]);
 
   return (
     <Container>
@@ -99,13 +99,15 @@ const HomePage: React.FC = () => {
         <Header searchTerm={searchTerm} onSearchChange={setSearchTerm} />
         <ContentArea>
           <Banner
-            title="Find Your Community"
-            subtitle="on EventManager"
+            title="Event Manager"
+            subtitle="Encontre eventos, faça parte de comunidades e crie os seus no Event Manager"
             backgroundImage="/placeholder.svg?height=300&width=1000"
           />
 
-          {/* Modificação aqui: remova a div e passe a prop 'contentClassName' */}
-          <Section title="Eventos Públicos" contentClassName="section-content-home">
+          <Section
+            title="Eventos Públicos"
+            contentClassName="section-content-home"
+          >
             {loading ? (
               <p>Carregando eventos...</p>
             ) : error ? (

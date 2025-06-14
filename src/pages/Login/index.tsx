@@ -162,9 +162,6 @@ const LoginPage: React.FC = () => {
                 <SocialIcons.Google />
               </SocialButton>
               <SocialButton>
-                <SocialIcons.Facebook />
-              </SocialButton>
-              <SocialButton>
                 <SocialIcons.Twitter />
               </SocialButton>
             </SocialButtons>
