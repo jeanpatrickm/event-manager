@@ -196,9 +196,9 @@ const CreateEvent: React.FC = () => {
       newErrors.location = "Localização é obrigatória para eventos presenciais";
     }
 
-    if (!formData.organizerName.trim()) {
-      newErrors.organizerName = "Nome do organizador é obrigatório";
-    }
+    // if (!formData.organizerName.trim()) {
+    //   newErrors.organizerName = "Nome do organizador é obrigatório";
+    // }
 
     // Validação do Link Online
     if (formData.eventMode === "online") {
@@ -407,7 +407,7 @@ const CreateEvent: React.FC = () => {
 
           <form onSubmit={handleSubmit}>
             <FormSection>
-              <InputGroup>
+              {/* <InputGroup>
                 <Label htmlFor="organizerName">
                   <User size={16} /> Nome do Organizador*
                 </Label>
@@ -423,7 +423,7 @@ const CreateEvent: React.FC = () => {
                 {errors.organizerName && (
                   <ErrorMessage>{errors.organizerName}</ErrorMessage>
                 )}
-              </InputGroup>
+              </InputGroup> */}
 
               <InputGroup>
                 <Label htmlFor="title">

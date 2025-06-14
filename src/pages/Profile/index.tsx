@@ -22,6 +22,7 @@ import { Container } from "../Home/styles";
 import Sidebar from "../../components/CreateEvent/SideBar";
 import { supabase } from "../../lib/supabase";
 import { User } from "@supabase/supabase-js";
+import TopBar from "../../components/Perfil/TopBar";
 
 interface UserProfile {
   user_id: string;
@@ -461,6 +462,7 @@ const ProfilePage: React.FC = () => {
     <Container>
       <Sidebar />
       <ProfileContainer>
+        <TopBar />
         <ProfileHeader
           username={profileData.nome_usuario}
           displayName={

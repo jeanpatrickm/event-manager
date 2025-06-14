@@ -228,14 +228,14 @@ const Sidebar: React.FC = () => {
           </NavLink>
         </NavItem>
 
-        {/* NOVO ITEM DO TUTORIAL 
+        {/* NOVO ITEM DO TUTORIAL */}
         <NavItem>
+          {/* Usamos um `div` em vez de `Link` porque não vai para uma página nova */}
           <NavLink as="div" onClick={handleStartTutorial} $active={false} style={{cursor: 'pointer'}}>
             <HelpCircle size={20} />
             <NavText>Tutorial</NavText>
           </NavLink>
         </NavItem>
-          */}
       </NavList>
     </SidebarContainer>
   );

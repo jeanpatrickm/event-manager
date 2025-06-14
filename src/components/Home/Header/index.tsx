@@ -9,7 +9,7 @@ import {
   DropdownMenu,
   DropdownMenuItem,
 } from "./styles";
-import { Search, Bell, MessageCircle, Settings, LogOut } from "lucide-react";
+import { Search, Bell, Settings, LogOut } from "lucide-react";//, MessageCircle
 import { supabase } from "../../../lib/supabase";
 
 // 1. Definimos a interface para as novas props que o Header vai receber
@@ -70,9 +70,9 @@ const Header: React.FC<HeaderProps> = ({ searchTerm, onSearchChange }) => {
 
   return (
     <HeaderContainer>
-      <SearchContainer>
+
+      <SearchContainer id="search-container-header">
         <Search size={18} color="#666" />
-        {/* 3. Conectamos o input com as props recebidas */}
         <SearchInput
           placeholder="Explore eventos pelo título ou descrição"
           value={searchTerm}
@@ -81,13 +81,13 @@ const Header: React.FC<HeaderProps> = ({ searchTerm, onSearchChange }) => {
       </SearchContainer>
 
       <IconsContainer>
-        <IconButton aria-label="Notificações">
+        <IconButton aria-label="Notificações" id="nav-notifications">
           <Bell size={20} />
         </IconButton>
-        <IconButton aria-label="Mensagens">
+        {/* <IconButton aria-label="Mensagens">
           <MessageCircle size={20} />
-        </IconButton>
-        <div style={{ position: "relative" }} ref={dropdownRef}>
+        </IconButton> */}
+        <div style={{ position: "relative" }} ref={dropdownRef} id="nav-config">
           <IconButton
             aria-label="Configurações"
             onClick={handleToggleSettingsDropdown}

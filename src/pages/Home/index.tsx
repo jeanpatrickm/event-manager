@@ -8,8 +8,8 @@ import Header from "../../components/Home/Header";
 import Banner from "../../components/Home/Banner";
 import Section from "../../components/Home/Section";
 import EventCard from "../../components/Home/Event-Card";
-import Sidebar from "../../components/CreateEvent/SideBar";
-
+import Sidebar from "../../components/Home/SideBar";
+import Tutorial from "../../components/Tutorial";
 interface Event {
   evento_id: string;
   titulo: string;
@@ -93,9 +93,9 @@ const HomePage: React.FC = () => {
 
   return (
     <Container>
+      <Tutorial />
       <Sidebar activeItem="Home" />
       <MainContent>
-        {/* 5. Passa o estado e a função para o Header */}
         <Header searchTerm={searchTerm} onSearchChange={setSearchTerm} />
         <ContentArea>
           <Banner
@@ -104,13 +104,13 @@ const HomePage: React.FC = () => {
             backgroundImage="/placeholder.svg?height=300&width=1000"
           />
 
-          <Section title="Eventos Públicos">
+          {/* Modificação aqui: remova a div e passe a prop 'contentClassName' */}
+          <Section title="Eventos Públicos" contentClassName="section-content-home">
             {loading ? (
               <p>Carregando eventos...</p>
             ) : error ? (
               <p>{error}</p>
             ) : publicEvents.length === 0 ? (
-              // Mensagem dinâmica se não houver resultados para a busca
               <p>
                 {debouncedTerm
                   ? "Nenhum evento encontrado para sua busca."

@@ -10,6 +10,7 @@ import CreateEvent from "./pages/CreateEvent";
 import EventDetails from "./pages/EventDetails";
 import Register from "./pages/Register";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
+import MyEventsPage from "./pages/MyEvents";
 
 const router = createBrowserRouter([
   {
@@ -34,6 +35,14 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <ProfilePage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/MyEvents",
+    element: (
+      <ProtectedRoute>
+        <MyEventsPage />
       </ProtectedRoute>
     ),
   },

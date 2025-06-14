@@ -11,16 +11,19 @@ import {
 interface SectionProps {
   title: string;
   children: ReactNode;
+  // Adicione a nova propriedade opcional aqui
+  contentClassName?: string;
 }
 
-const Section: React.FC<SectionProps> = ({ title, children }) => {
+const Section: React.FC<SectionProps> = ({ title, children, contentClassName }) => {
   return (
     <SectionContainer>
       <SectionHeader>
         <SectionTitle>{title}</SectionTitle>
         <ViewAllLink href="#">See all</ViewAllLink>
       </SectionHeader>
-      <SectionContent>{children}</SectionContent>
+      {/* Aplique a className recebida ao SectionContent */}
+      <SectionContent className={contentClassName}>{children}</SectionContent>
     </SectionContainer>
   );
 };
