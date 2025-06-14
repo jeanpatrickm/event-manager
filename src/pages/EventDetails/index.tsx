@@ -20,8 +20,6 @@ import EventOrganizer from "../../components/EventDetails/EventOrganizer";
 import EventInfo from "../../components/EventDetails/EventInfo";
 import ParticipantsList from "../../components/EventDetails/ParticipantsList";
 import CommentSection from "../../components/EventDetails/ComentSection";
-
-// --- INTERFACES ---
 interface OrganizerData {
   user_id: string;
   nome_completo: string;
@@ -84,7 +82,11 @@ const EventDetails: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loadingInteraction, setLoadingInteraction] = useState(false);
   const [loadingComment, setLoadingComment] = useState(false);
+  // NOVO: Estado para controlar o carregamento da exclusão
+  const [loadingDelete, setLoadingDelete] = useState(false);
 
+
+  // ... (useEffect para buscar sessão - sem alterações)
   useEffect(() => {
     const getSession = async () => {
       const {
@@ -103,6 +105,7 @@ const EventDetails: React.FC = () => {
     };
   }, []);
 
+  // ... (useEffect para buscar detalhes do evento )
   useEffect(() => {
     if (!eventId) {
       setError("ID do evento não fornecido.");
@@ -226,6 +229,7 @@ const EventDetails: React.FC = () => {
     };
     fetchEventDetails();
   }, [eventId, currentUser]);
+
 
   const handleJoinEvent = async () => {
     if (!currentUser) {
@@ -431,6 +435,45 @@ const EventDetails: React.FC = () => {
     }
   };
 
+
+  // --- FUNÇÃO PARA DELETAR O EVENTO ---
+  const handleDeleteEvent = async () => {
+    if (!eventData || !currentUser || currentUser.id !== eventData.user_id) {
+      alert("Você não tem permissão para excluir este evento.");
+      return;
+    }
+
+    const isConfirmed = window.confirm(
+      "Tem certeza que deseja excluir este evento?\nEsta ação não pode ser desfeita e removerá todas as inscrições e comentários associados."
+    );
+
+    if (!isConfirmed) {
+      return;
+    }
+
+    setLoadingDelete(true);
+    try {
+      const { error: deleteError } = await supabase
+        .from("eventos")
+        .delete()
+        .match({ evento_id: eventData.evento_id });
+
+      if (deleteError) {
+        throw deleteError;
+      }
+
+      alert("Evento excluído com sucesso!");
+      navigate("/"); // Redireciona para a página inicial
+    } catch (err: any) {
+      console.error("Erro ao excluir evento:", err);
+      alert(`Falha ao excluir o evento: ${err.message}`);
+    } finally {
+      setLoadingDelete(false);
+    }
+  };
+
+
+  // ... (getEventStatus, retornos de loading, error e !eventData )
   const getEventStatus = (): EventStatus => {
     if (!eventData?.data_evento) return "undefined";
     const eventDateTimeStr = `${eventData.data_evento.split("T")[0]}T${
@@ -489,6 +532,9 @@ const EventDetails: React.FC = () => {
   } catch (e) {}
   const eventStatus = getEventStatus();
 
+  // NOVO: Verificação se o usuário logado é o dono do evento
+  const isOwner = currentUser?.id === eventData.user_id;
+
   return (
     <Container>
       <Sidebar />
@@ -537,6 +583,10 @@ const EventDetails: React.FC = () => {
             isJoined={isJoined}
             onJoin={handleJoinEvent}
             isLoadingJoin={loadingInteraction}
+            // --- PASSANDO AS NOVAS PROPS ---
+            isOwner={isOwner}
+            onDelete={handleDeleteEvent}
+            isLoadingDelete={loadingDelete}
           />
 
           <ParticipantsList

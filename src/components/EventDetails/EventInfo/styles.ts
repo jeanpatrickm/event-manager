@@ -123,3 +123,29 @@ export const ActionButton = styled.button<{ $active?: boolean }>`
     color: var(--white);
   }
 `;
+
+export const DeleteEventButton = styled.button`
+  padding: 10px 20px;
+  color: var(--white);
+  border: 1px solid var(--cor-vermelho-cancelar, #dc3545);
+  background-color: transparent;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &:hover:not(:disabled) {
+    background-color: var(--cor-vermelho-cancelar, #dc3545);
+    color: var(--white);
+  }
+
+  &:disabled {
+    border-color: var(--color-dark-grey-text);
+    color: var(--color-dark-grey-text);
+    cursor: not-allowed;
+    opacity: 0.65;
+  }
+`;
