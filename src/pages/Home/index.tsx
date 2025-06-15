@@ -45,8 +45,7 @@ const HomePage: React.FC = () => {
         setLoading(true);
         setError(null);
 
-        // Pega a data de hoje no formato YYYY-MM-DD
-        const today = new Date().toISOString().split("T")[0];
+        const today = new Date().toISOString();
 
         let query = supabase
             .from("eventos")
