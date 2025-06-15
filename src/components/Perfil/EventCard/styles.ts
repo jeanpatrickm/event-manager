@@ -1,13 +1,18 @@
 import styled from "styled-components";
 
-export const EventCardContainer = styled.div`
+// Adicionada a prop $isPast
+export const EventCardContainer = styled.div<{ $isPast?: boolean }>`
   background-color: #2b2d42;
   border-radius: 8px;
   overflow: hidden;
-  transition: transform 0.2s;
+  /* Aplica o filtro e remove a transição se o evento já passou */
+  filter: ${(props) =>
+    props.$isPast ? "grayscale(80%) brightness(50%)" : "none"};
+  transition: ${(props) => (props.$isPast ? "none" : "transform 0.2s")};
 
   &:hover {
-    transform: translateY(-5px);
+    /* O efeito hover só se aplica a eventos futuros */
+    transform: ${(props) => (props.$isPast ? "none" : "translateY(-5px)")};
   }
 `;
 
@@ -47,8 +52,12 @@ export const EventStatus = styled.span`
   align-items: center;
 `;
 
-export const EventMembers = styled.span`
+// Adicionada a prop '$isFull' para controle de estilo
+export const EventMembers = styled.span<{ $isFull?: boolean }>`
   display: flex;
   align-items: center;
   gap: 5px;
+  /* Aplica a cor vermelha se '$isFull' for verdadeiro, senão, usa a cor padrão */
+  color: ${(props) =>
+    props.$isFull ? "var(--color-danger)" : "var(--white)"};
 `;

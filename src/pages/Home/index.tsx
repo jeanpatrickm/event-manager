@@ -19,54 +19,51 @@ interface Event {
   data_evento: string;
   horario: string;
   max_participantes: number | null;
+  inscricao: { count: number }[]; // Para obter a contagem de inscritos
 }
 
 const HomePage: React.FC = () => {
   const [publicEvents, setPublicEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // 1. Estado para o valor imediato do input de busca
   const [searchTerm, setSearchTerm] = useState("");
-  // 2. Estado para o valor "atrasado" (debounced), que efetivamente dispara a busca
   const [debouncedTerm, setDebouncedTerm] = useState("");
 
-  // 3. Efeito para criar o "debounce" (atraso inteligente)
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedTerm(searchTerm);
-    }, 500); // Espera 500ms após o usuário parar de digitar
+    }, 500); 
 
-    // Limpa o timer anterior se o usuário digitar novamente
     return () => {
       clearTimeout(timer);
     };
-  }, [searchTerm]); // Roda sempre que o termo de busca imediato muda
+  }, [searchTerm]);
 
-  // 4. Efeito principal para buscar os dados, agora dependendo do termo "atrasado"
   useEffect(() => {
     const fetchPublicEvents = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Inicia a query base do Supabase
-        let query = supabase
-          .from("eventos")
-          .select(
-            "evento_id, titulo, descricao, image_capa, publico, data_evento, horario, max_participantes"
-          )
-          .eq("publico", true);
+        // Pega a data de hoje no formato YYYY-MM-DD
+        const today = new Date().toISOString().split("T")[0];
 
-        // Se houver um termo de busca, adiciona o filtro na query
+        let query = supabase
+            .from("eventos")
+            .select("*, inscricao(count)")
+            .eq("publico", true)
+            // Adiciona o filtro para pegar eventos de hoje em diante
+            .gte("data_evento", today);
+          supabase
+            .from("inscricao")
+            .select("eventos!inner(*, inscricao(count))")
+
         if (debouncedTerm) {
-          // .or() busca em múltiplos campos. 'ilike' é case-insensitive e busca por partes do texto ('%').
           query = query.or(
             `titulo.ilike.%${debouncedTerm}%,descricao.ilike.%${debouncedTerm}%`
           );
         }
 
-        // Adiciona a ordenação no final
         const { data, error: supabaseError } = await query.order(
           "data_evento",
           {
@@ -105,7 +102,7 @@ const HomePage: React.FC = () => {
           />
 
           <Section
-            title="Eventos Públicos"
+            title="Próximos Eventos Públicos"
             contentClassName="section-content-home"
           >
             {loading ? (
@@ -115,8 +112,8 @@ const HomePage: React.FC = () => {
             ) : publicEvents.length === 0 ? (
               <p>
                 {debouncedTerm
-                  ? "Nenhum evento encontrado para sua busca."
-                  : "Nenhum evento público encontrado."}
+                  ? "Nenhum evento futuro encontrado para sua busca."
+                  : "Nenhum evento público agendado no momento."}
               </p>
             ) : (
               publicEvents.map((event) => (
@@ -132,7 +129,8 @@ const HomePage: React.FC = () => {
                       event.image_capa ||
                       "/placeholder.svg?height=300&width=500"
                     }
-                    memberCount={event.max_participantes || undefined}
+                    currentParticipants={event.inscricao[0]?.count ?? 0}
+                    maxParticipants={event.max_participantes}
                   />
                 </Link>
               ))

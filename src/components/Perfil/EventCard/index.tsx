@@ -1,5 +1,4 @@
 import type React from "react";
-import { Users } from "lucide-react";
 import {
   EventCardContainer,
   EventImage,
@@ -7,36 +6,58 @@ import {
   EventTitle,
   EventDescription,
   EventFooter,
-  EventStatus,
   EventMembers,
 } from "./styles";
+import { Users } from "lucide-react";
 
 interface EventCardProps {
+  id: string; // Adicionada a prop id para a key
   title: string;
   description: string;
   imageUrl?: string;
-  onlineCount: number;
-  membersCount: number;
+  isPast?: boolean; // Nova prop para controlar o estilo
+  maxParticipants: number | null;
+  currentParticipants?: number;
 }
 
 const EventCard: React.FC<EventCardProps> = ({
   title,
   description,
   imageUrl,
-  onlineCount,
-  membersCount,
+  isPast = false, // Valor padrão é false
+  maxParticipants,
+  currentParticipants = 0,
 }) => {
+  const isFull = maxParticipants !== null && currentParticipants >= maxParticipants;
   return (
-    <EventCardContainer>
+    // Passando a prop $isPast para o container estilizado
+    <EventCardContainer $isPast={isPast}>
       {imageUrl && <EventImage src={imageUrl} alt={title} />}
       <EventContent>
-        <EventTitle>{title}</EventTitle>
-        <EventDescription>{description}</EventDescription>
+        <EventTitle>
+          {title.length > 35 ? `${title.substring(0, 35)}...` : title}
+        </EventTitle>
+        <EventDescription>
+           {description.length > 50 ? `${description.substring(0, 50)}...` : description}
+        </EventDescription>
         <EventFooter>
-          <EventStatus>{onlineCount} Online</EventStatus>
-          <EventMembers>
-            <Users size={14} /> {membersCount} Members
-          </EventMembers>
+          {isPast ? (
+            <span style={{color: "var(--color-danger)"}}>Encerrado</span>
+          ) : (
+            // Fragmento <>...</> para agrupar os elementos
+            <>
+              {maxParticipants !== undefined && (
+                <EventMembers $isFull={isFull}>
+                  <Users size={14} />
+                  {currentParticipants}
+                  {maxParticipants ? `/${maxParticipants}` : ''}
+                  {' '}
+                  {currentParticipants === 1 ? 'Membro' : 'Membros'}
+              </EventMembers>
+              )}
+              {<span style={{color: "lightblue"}}>Em Breve</span>}
+            </>
+          )}
         </EventFooter>
       </EventContent>
     </EventCardContainer>

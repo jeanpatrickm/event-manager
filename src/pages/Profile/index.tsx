@@ -43,6 +43,8 @@ interface ProfileEvent {
   descricao: string | null;
   image_capa: string | null;
   max_participantes: number | null;
+  data_evento: string; // Para verificar se o evento já passou
+  inscricao: { count: number }[]; // Para obter a contagem de inscritos
 }
 interface EditProfileFormData {
   primeiro_nome: string;
@@ -100,11 +102,12 @@ const ProfilePage: React.FC = () => {
           data: { user: loggedInUser },
           error: authError,
         } = await supabase.auth.getUser();
+        
         if (authError) {
           console.error("Erro de autenticação:", authError?.message);
         }
-        setCurrentUser(loggedInUser);
 
+        setCurrentUser(loggedInUser);
         const idToFetch = userId || loggedInUser?.id;
 
         if (!idToFetch) {
@@ -152,14 +155,12 @@ const ProfilePage: React.FC = () => {
         const [createdRes, inscriptionsRes] = await Promise.all([
           supabase
             .from("eventos")
-            .select(
-              "evento_id, titulo, descricao, image_capa, max_participantes"
-            )
+            .select("*, inscricao(count)")
             .eq("user_id", idToFetch)
             .order("data_criacao", { ascending: false }),
           supabase
             .from("inscricao")
-            .select("evento_id")
+            .select("eventos!inner(*, inscricao(count))")
             .eq("user_id", idToFetch),
         ]);
 
@@ -171,25 +172,10 @@ const ProfilePage: React.FC = () => {
         if (inscriptionsRes.error) {
           throw inscriptionsRes.error;
         }
-        if (inscriptionsRes.data && inscriptionsRes.data.length > 0) {
-          const eventIdsToFetch = inscriptionsRes.data.map(
-            (insc) => insc.evento_id
-          );
-          const { data: joinedEventsData, error: joinedEventsError } =
-            await supabase
-              .from("eventos")
-              .select(
-                "evento_id, titulo, descricao, image_capa, max_participantes"
-              )
-              .in("evento_id", eventIdsToFetch)
-              .order("data_evento", { ascending: true });
-          if (joinedEventsError) {
-            throw joinedEventsError;
-          }
-          setJoinedEvents(joinedEventsData || []);
-        } else {
-          setJoinedEvents([]);
-        }
+        const joined = (inscriptionsRes.data || [])
+          .map((item) => item.eventos)
+          .filter(Boolean) as unknown as ProfileEvent[];
+        setJoinedEvents(joined || []);
       } catch (error: any) {
         console.error("Erro ao carregar dados da página de perfil:", error);
         setProfileErrorMsg("Ocorreu um erro ao carregar o perfil.");
@@ -317,6 +303,9 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+
   const tabs = [
     {
       id: "created",
@@ -346,6 +335,9 @@ const ProfilePage: React.FC = () => {
                       event.image_capa ||
                       "/placeholder.svg?height=200&width=300"
                     }
+                    isPast={new Date(event.data_evento) < today}
+                    currentParticipants={event.inscricao[0]?.count ?? 0}
+                    maxParticipants={event.max_participantes}
                   />
                 </Link>
               ))}
@@ -382,6 +374,9 @@ const ProfilePage: React.FC = () => {
                       event.image_capa ||
                       "/placeholder.svg?height=200&width=300"
                     }
+                    isPast={new Date(event.data_evento) < today}
+                    currentParticipants={event.inscricao[0]?.count ?? 0}
+                    maxParticipants={event.max_participantes}
                   />
                 </Link>
               ))}

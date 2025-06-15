@@ -35,10 +35,12 @@ export const InfoLabel = styled.div`
   }
 `;
 
-export const InfoValue = styled.div`
+// 1. Adicionada a prop opcional '$isFull'
+export const InfoValue = styled.div<{ $isFull?: boolean }>`
   font-size: 16px;
   font-weight: 500;
-  color: var(--white);
+  /* 2. Aplica a cor vermelha se '$isFull' for verdadeiro, senão, usa a cor padrão */
+  color: ${(props) => (props.$isFull ? "var(--color-danger)" : "var(--white)")};
 `;
 
 export const TagsContainer = styled.div`
