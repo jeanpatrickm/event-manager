@@ -41,6 +41,8 @@ interface EventInfoProps {
   onDelete: () => void;
   isLoadingDelete: boolean;
   onEdit: () => void;
+  isPrivate: boolean;
+  userStatus: 'nao_inscrito' | 'pendente' | 'aprovado' | 'recusado';
 }
 
 const EventInfo: React.FC<EventInfoProps> = ({
@@ -52,8 +54,10 @@ const EventInfo: React.FC<EventInfoProps> = ({
   category,
   tags,
   status,
-  isJoined,
+  isPrivate,
+  userStatus,
   onJoin,
+  isJoined,
   isLoadingJoin,
   isOwner,
   onDelete,
@@ -83,12 +87,37 @@ const EventInfo: React.FC<EventInfoProps> = ({
   };
 
   let buttonText = "Participar do Evento";
-  if (isLoadingJoin) {
-    buttonText = "Processando...";
-  } else if (isJoined) {
-    buttonText = isHoveringUnsubscribe ? "Cancelar Inscrição" : "Inscrito";
-  } else if (isFull) {
-    buttonText = "Vagas Esgotadas";
+  let buttonDisabled = status === "past" || isLoadingJoin;
+
+  if (isPrivate) {
+    switch (userStatus) {
+      case 'nao_inscrito':
+        buttonText = "Solicitar Inscrição";
+        break;
+      case 'pendente':
+        buttonText = "Solicitação Enviada";
+        buttonDisabled = true;
+        break;
+      case 'aprovado':
+        buttonText = isHoveringUnsubscribe ? "Cancelar Inscrição" : "Inscrito";
+        break;
+      case 'recusado':
+        buttonText = "Solicitação Recusada";
+        buttonDisabled = true;
+        break;
+    }
+  } else {
+      if (isLoadingJoin) {
+        buttonText = "Processando...";
+      } else if (isJoined) {
+        buttonText = isHoveringUnsubscribe ? "Cancelar Inscrição" : "Inscrito";
+      } else if (isFull) {
+        buttonText = "Vagas Esgotadas";
+      }
+  }
+
+  if (isFull && !isJoined) {
+      buttonDisabled = true;
   }
 
 
@@ -142,7 +171,7 @@ const EventInfo: React.FC<EventInfoProps> = ({
           $joined={isJoined}
           $hoveringUnsubscribe={isJoined && isHoveringUnsubscribe}
           onClick={handleJoinButtonClick}
-          disabled={status === "past" || isLoadingJoin || (isFull && !isJoined)}
+          disabled={buttonDisabled}
           onMouseEnter={() => {
             if (isJoined && !isLoadingJoin) {
               setIsHoveringUnsubscribe(true);

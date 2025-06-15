@@ -19,7 +19,7 @@ interface Event {
   data_evento: string;
   horario: string;
   max_participantes: number | null;
-  inscricao: { count: number }[]; // Para obter a contagem de inscritos
+  inscricao: { count: number }[];
 }
 
 const HomePage: React.FC = () => {
@@ -32,7 +32,7 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedTerm(searchTerm);
-    }, 500); 
+    }, 500);
 
     return () => {
       clearTimeout(timer);
@@ -51,11 +51,9 @@ const HomePage: React.FC = () => {
             .from("eventos")
             .select("*, inscricao(count)")
             .eq("publico", true)
-            // Adiciona o filtro para pegar eventos de hoje em diante
-            .gte("data_evento", today);
-          supabase
-            .from("inscricao")
-            .select("eventos!inner(*, inscricao(count))")
+            .gte("data_evento", today)
+            // CORREÇÃO: Adicionado filtro para contar apenas inscrições aprovadas.
+            .eq("inscricao.status", "aprovado");
 
         if (debouncedTerm) {
           query = query.or(

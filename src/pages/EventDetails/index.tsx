@@ -20,6 +20,7 @@ import EventOrganizer from "../../components/EventDetails/EventOrganizer";
 import EventInfo from "../../components/EventDetails/EventInfo";
 import ParticipantsList from "../../components/EventDetails/ParticipantsList";
 import CommentSection from "../../components/EventDetails/ComentSection";
+import ApprovalQueue from "../../components/EventDetails/ApprovalQueue";
 
 interface OrganizerData {
   user_id: string;
@@ -36,10 +37,11 @@ interface DetailedEventData {
   local: string | null;
   max_participantes: number | null;
   presencial: boolean;
+  publico: boolean; // Adicionado para verificação
   link_online: string | null;
   user_id: string;
   cod_categoria: number;
-  categoria: string | null; // 1. Adicionado o campo de categoria como string
+  categoria: string | null;
   tags: string | null;
   organizador?: OrganizerData;
 }
@@ -76,19 +78,20 @@ const EventDetails: React.FC = () => {
   const [loadingComment, setLoadingComment] = useState(false);
   const [loadingDelete, setLoadingDelete] = useState(false);
 
+  // Novos estados para o fluxo de aprovação
+  const [isPrivate, setIsPrivate] = useState(false);
+  const [userStatus, setUserStatus] = useState<'nao_inscrito' | 'pendente' | 'aprovado' | 'recusado'>('nao_inscrito');
+  const [pendingRequests, setPendingRequests] = useState<ParticipantData[]>([]);
+
   useEffect(() => {
     const getSession = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       setCurrentUser(user);
     };
     getSession();
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setCurrentUser(session?.user ?? null);
-      }
-    );
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setCurrentUser(session?.user ?? null);
+    });
     return () => {
       authListener?.subscription.unsubscribe();
     };
@@ -104,95 +107,87 @@ const EventDetails: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        // 2. Simplificada a query para buscar a coluna 'categoria' diretamente
         const { data: eventResult, error: eventError } = await supabase
           .from("eventos")
-          .select(
-            `*, usuario:user_id (user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario)`
-          )
+          .select(`*, usuario:user_id (user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario)`)
           .eq("evento_id", eventId)
           .single();
+
         if (eventError) throw eventError;
         if (!eventResult) throw new Error("Evento não encontrado.");
 
         const fetchedEventData: DetailedEventData = {
           ...eventResult,
-          organizador: eventResult.usuario
-            ? {
-                user_id: eventResult.usuario.user_id,
-                nome_completo:
-                  `${eventResult.usuario.primeiro_nome || ""} ${
-                    eventResult.usuario.sobrenome || ""
-                  }`.trim() ||
-                  eventResult.usuario.nome_usuario ||
-                  "Organizador",
-                foto_perfil: eventResult.usuario.foto_perfil,
-              }
-            : undefined,
+          organizador: eventResult.usuario ? {
+            user_id: eventResult.usuario.user_id,
+            nome_completo: `${eventResult.usuario.primeiro_nome || ""} ${eventResult.usuario.sobrenome || ""}`.trim() || eventResult.usuario.nome_usuario || "Organizador",
+            foto_perfil: eventResult.usuario.foto_perfil,
+          } : undefined,
         };
         setEventData(fetchedEventData);
-        const { data: participantsResult, error: participantsError } =
-          await supabase
-            .from("inscricao")
-            .select(
-              `user_id, usuario:user_id (user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario)`
-            )
-            .eq("evento_id", eventId);
-        if (participantsError) throw participantsError;
-        const fetchedParticipants: ParticipantData[] = (
-          participantsResult || []
-        ).map((p) => ({
-          user_id: p.usuario.user_id,
-          nome_completo:
-            `${p.usuario.primeiro_nome || ""} ${
-              p.usuario.sobrenome || ""
-            }`.trim() ||
-            p.usuario.nome_usuario ||
-            "Participante",
-          foto_perfil: p.usuario.foto_perfil,
-        }));
-        setParticipants(fetchedParticipants);
-        if (
-          currentUser &&
-          fetchedParticipants.some((p) => p.user_id === currentUser.id)
-        ) {
-          setIsJoined(true);
-        } else {
-          setIsJoined(false);
+        setIsPrivate(!fetchedEventData.publico);
+
+        const { data: inscriptionsResult, error: inscriptionsError } = await supabase
+          .from("inscricao")
+          .select(`status, usuario:user_id (user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario)`)
+          .eq("evento_id", eventId);
+
+        if (inscriptionsError) throw inscriptionsError;
+
+        const allInscriptions = inscriptionsResult || [];
+
+        const approvedParticipants: ParticipantData[] = allInscriptions
+          .filter(i => i.status === 'aprovado')
+          .map(p => ({
+            user_id: p.usuario.user_id,
+            nome_completo: `${p.usuario.primeiro_nome || ""} ${p.usuario.sobrenome || ""}`.trim() || p.usuario.nome_usuario || "Participante",
+            foto_perfil: p.usuario.foto_perfil,
+          }));
+        setParticipants(approvedParticipants);
+
+        const pending: ParticipantData[] = allInscriptions
+          .filter(i => i.status === 'pendente')
+          .map(p => ({
+            user_id: p.usuario.user_id,
+            nome_completo: `${p.usuario.primeiro_nome || ""} ${p.usuario.sobrenome || ""}`.trim() || p.usuario.nome_usuario || "Solicitante",
+            foto_perfil: p.usuario.foto_perfil,
+          }));
+        setPendingRequests(pending);
+
+        if (currentUser) {
+          const currentUserInscription = allInscriptions.find(i => i.usuario.user_id === currentUser.id);
+          if (currentUserInscription) {
+            setUserStatus(currentUserInscription.status as any);
+            setIsJoined(currentUserInscription.status === 'aprovado');
+          } else {
+            setUserStatus('nao_inscrito');
+            setIsJoined(false);
+          }
         }
+
         const { data: commentsData, error: commentsError } = await supabase
           .from("comentario")
-          .select(
-            `comentario_id, texto, data, user_id, evento_id, foto_id, usuario:user_id (user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario), galeria_item:foto_id (foto_id, foto_url)`
-          )
+          .select(`comentario_id, texto, data, user_id, evento_id, foto_id, usuario:user_id (user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario), galeria_item:foto_id (foto_id, foto_url)`)
           .eq("evento_id", eventId)
           .order("data", { ascending: false });
+
         if (commentsError) throw commentsError;
-        const fetchedComments: CommentDBData[] = (commentsData || []).map(
-          (c) => ({
-            comentario_id: c.comentario_id,
-            texto: c.texto,
-            data: c.data,
-            user_id: c.user_id,
-            evento_id: c.evento_id,
-            foto_id: c.foto_id,
-            autor_nome:
-              `${c.usuario.primeiro_nome || ""} ${
-                c.usuario.sobrenome || ""
-              }`.trim() ||
-              c.usuario.nome_usuario ||
-              "Usuário",
-            autor_avatar: c.usuario.foto_perfil,
-            attachedImageUrl: c.galeria_item
-              ? Array.isArray(c.galeria_item)
-                ? c.galeria_item[0]?.foto_url
-                : c.galeria_item.foto_url
-              : null,
-          })
-        );
+
+        const fetchedComments: CommentDBData[] = (commentsData || []).map(c => ({
+          comentario_id: c.comentario_id,
+          texto: c.texto,
+          data: c.data,
+          user_id: c.user_id,
+          evento_id: c.evento_id,
+          foto_id: c.foto_id,
+          autor_nome: `${c.usuario.primeiro_nome || ""} ${c.usuario.sobrenome || ""}`.trim() || c.usuario.nome_usuario || "Usuário",
+          autor_avatar: c.usuario.foto_perfil,
+          attachedImageUrl: c.galeria_item ? (Array.isArray(c.galeria_item) ? c.galeria_item[0]?.foto_url : c.galeria_item.foto_url) : null,
+        }));
         setComments(fetchedComments);
+
       } catch (err: any) {
-        console.error("Erro ao buscar detalhes do evento ou comentários:", err);
+        console.error("Erro ao buscar detalhes do evento:", err);
         setError(err.message || "Falha ao carregar dados.");
       } finally {
         setLoading(false);
@@ -201,77 +196,59 @@ const EventDetails: React.FC = () => {
     fetchEventDetails();
   }, [eventId, currentUser]);
 
+  // Em src/pages/EventDetails/index.tsx
+
   const handleJoinEvent = async () => {
-    if (!currentUser) {
-      alert("Você precisa estar logado para se inscrever.");
-      return;
-    }
-    if (!eventData) {
-      alert("Dados do evento não carregados.");
+    if (!currentUser || !eventData) {
+      alert("Você precisa estar logado para realizar esta ação.");
       return;
     }
     setLoadingInteraction(true);
     try {
       if (isJoined) {
-        const { error: deleteError } = await supabase
-          .from("inscricao")
-          .delete()
-          .match({ evento_id: eventData.evento_id, user_id: currentUser.id });
+        // Lógica para SAIR do evento (DELETE) continua a mesma
+        const { error: deleteError } = await supabase.from("inscricao").delete().match({ evento_id: eventData.evento_id, user_id: currentUser.id });
         if (deleteError) throw deleteError;
         setIsJoined(false);
-        setParticipants((prev) =>
-          prev.filter((p) => p.user_id !== currentUser.id)
-        );
+        setUserStatus('nao_inscrito');
+        setParticipants((prev) => prev.filter((p) => p.user_id !== currentUser.id));
       } else {
-        if (
-          eventData.max_participantes !== null &&
-          participants.length >= eventData.max_participantes
-        ) {
-          alert("Desculpe, as vagas para este evento acabaram.");
-          setLoadingInteraction(false);
-          return;
-        }
-        const { error: insertError } = await supabase
-          .from("inscricao")
-          .insert([
-            { evento_id: eventData.evento_id, user_id: currentUser.id },
-          ]);
-        if (insertError) throw insertError;
-        setIsJoined(true);
-        const { data: userProfile, error: profileError } = await supabase
-          .from("usuario")
-          .select(
-            "user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario"
-          )
-          .eq("user_id", currentUser.id)
-          .single();
-        if (profileError) {
-          console.warn(
-            "Não foi possível buscar o perfil:",
-            profileError.message
-          );
-          setParticipants((prev) => [
-            ...prev,
-            {
-              user_id: currentUser.id,
-              nome_completo: currentUser.email || "Você",
-              foto_perfil: null,
-            },
-          ]);
-        } else if (userProfile) {
-          setParticipants((prev) => [
-            ...prev,
-            {
+        // Lógica para ENTRAR ou SOLICITAR
+        if (isPrivate) {
+          // CORREÇÃO: Chame a nova função RPC em vez de fazer a lógica no cliente
+          const { error } = await supabase.rpc('solicitar_inscricao_evento', {
+            p_evento_id: eventData.evento_id
+          });
+
+          if (error) throw error;
+          
+          setUserStatus('pendente');
+          alert("Sua solicitação foi enviada ao organizador!");
+
+        } else {
+          // Para eventos públicos, a lógica de inscrição direta continua igual
+          if (eventData.max_participantes !== null && participants.length >= eventData.max_participantes) {
+            alert("Desculpe, as vagas para este evento acabaram.");
+            setLoadingInteraction(false);
+            return;
+          }
+          const { error: insertError } = await supabase.from("inscricao").upsert({ 
+              evento_id: eventData.evento_id, 
+              user_id: currentUser.id, 
+              status: 'aprovado' 
+          });
+          if (insertError) throw insertError;
+          setIsJoined(true);
+          setUserStatus('aprovado');
+          
+          const { data: userProfile } = await supabase.from("usuario").select("user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario").eq("user_id", currentUser.id).single();
+          if (userProfile && !participants.some(p => p.user_id === userProfile.user_id)) {
+            setParticipants((prev) => [...prev, {
               user_id: userProfile.user_id,
-              nome_completo:
-                `${userProfile.primeiro_nome || ""} ${
-                  userProfile.sobrenome || ""
-                }`.trim() ||
-                userProfile.nome_usuario ||
-                "Você",
+              nome_completo: `${userProfile.primeiro_nome || ""} ${userProfile.sobrenome || ""}`.trim() || userProfile.nome_usuario || "Você",
               foto_perfil: userProfile.foto_perfil,
-            },
-          ]);
+            }]);
+          }
         }
       }
     } catch (err: any) {
@@ -282,6 +259,32 @@ const EventDetails: React.FC = () => {
     }
   };
 
+  const manageRequest = async (applicantId: string, newStatus: 'aprovado' | 'recusado') => {
+    if (!eventData) return;
+    setLoadingInteraction(true);
+    try {
+      const { error } = await supabase.rpc('gerenciar_solicitacao_inscricao', {
+        p_evento_id: eventData.evento_id,
+        p_solicitante_user_id: applicantId,
+        p_novo_status: newStatus
+      });
+      if (error) throw error;
+      
+      const managedUser = pendingRequests.find(req => req.user_id === applicantId);
+      setPendingRequests(prev => prev.filter(req => req.user_id !== applicantId));
+      if (newStatus === 'aprovado' && managedUser) {
+        setParticipants(prev => [...prev, managedUser]);
+      }
+      alert(`Solicitação ${newStatus === 'aprovado' ? 'aprovada' : 'recusada'} com sucesso.`);
+    } catch (err: any) {
+      console.error('Erro ao gerenciar solicitação:', err);
+      alert(`Erro: ${err.message}`);
+    } finally {
+      setLoadingInteraction(false);
+    }
+  };
+
+  // ... (restante das funções handleAddComment, handleDeleteEvent, handleEditEvent, getEventStatus sem alterações)
   const handleAddComment = async (
     commentText: string,
     imageFile?: File | null
@@ -446,38 +449,15 @@ const EventDetails: React.FC = () => {
     if (now >= eventStartDateTime && now <= eventEndDateTime) return "ongoing";
     return "upcoming";
   };
+  
+  if (loading) return <Container><p>Carregando...</p></Container>;
+  if (error) return <Container><p>Erro: {error}</p></Container>;
+  if (!eventData) return <Container><p>Evento não encontrado.</p></Container>;
 
-  if (loading)
-    return (
-      <Container>
-        <p>Carregando...</p>
-      </Container>
-    );
-  if (error)
-    return (
-      <Container>
-        <p>Erro: {error}</p>
-      </Container>
-    );
-  if (!eventData)
-    return (
-      <Container>
-        <p>Evento não encontrado.</p>
-      </Container>
-    );
-
-  const displayDate = new Date(eventData.data_evento).toLocaleDateString(
-    "pt-BR",
-    { day: "2-digit", month: "long", year: "numeric" }
-  );
+  const displayDate = new Date(eventData.data_evento).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
   let displayTime = "N/A";
   try {
-    displayTime = eventData.horario.includes("T")
-      ? new Date(eventData.horario).toLocaleTimeString("pt-BR", {
-          hour: "2-digit",
-          minute: "2-digit",
-        })
-      : eventData.horario.substring(0, 5);
+    displayTime = eventData.horario.includes("T") ? new Date(eventData.horario).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : eventData.horario.substring(0, 5);
   } catch (e) {}
   const eventStatus = getEventStatus();
   const isOwner = currentUser?.id === eventData.user_id;
@@ -489,44 +469,32 @@ const EventDetails: React.FC = () => {
         <TopBar />
         <ContentContainer>
           <EventHeader status={eventStatus} />
-          <EventCoverImage
-            src={
-              eventData.image_capa || "/placeholder.svg?height=400&width=800"
-            }
-            alt={eventData.titulo}
-          />
+          <EventCoverImage src={eventData.image_capa || "/placeholder.svg?height=400&width=800"} alt={eventData.titulo} />
           <EventTitle>{eventData.titulo}</EventTitle>
 
           {eventData.organizador && (
-            <EventOrganizer
-              userId={eventData.organizador.user_id}
-              name={eventData.organizador.nome_completo}
-              avatar={
-                eventData.organizador.foto_perfil ||
-                "/placeholder.svg?height=50&width=50"
-              }
-            />
+            <EventOrganizer userId={eventData.organizador.user_id} name={eventData.organizador.nome_completo} avatar={eventData.organizador.foto_perfil || "/placeholder.svg?height=50&width=50"} />
           )}
 
           <EventDescription>{eventData.descricao}</EventDescription>
+          
+          {isOwner && pendingRequests.length > 0 && (
+            <ApprovalQueue
+              requests={pendingRequests}
+              onApprove={(applicantId) => manageRequest(applicantId, 'aprovado')}
+              onDeny={(applicantId) => manageRequest(applicantId, 'recusado')}
+              isLoading={loadingInteraction}
+            />
+          )}
 
           <EventInfo
             date={displayDate}
             time={displayTime}
-            location={
-              eventData.presencial
-                ? eventData.local
-                : eventData.link_online || "Online"
-            }
+            location={eventData.presencial ? eventData.local : eventData.link_online || "Online"}
             currentParticipants={participants.length}
-            maxParticipants={eventData.max_participantes ?? undefined}
-            // 3. Usar o campo de categoria direto da tabela 'eventos'
+            maxParticipants={eventData.max_participantes}
             category={eventData.categoria || "Não categorizado"}
-            tags={
-              eventData.tags
-                ? eventData.tags.split(",").map((tag) => tag.trim())
-                : []
-            }
+            tags={eventData.tags ? eventData.tags.split(",").map((tag) => tag.trim()) : []}
             status={eventStatus}
             isJoined={isJoined}
             onJoin={handleJoinEvent}
@@ -535,6 +503,8 @@ const EventDetails: React.FC = () => {
             onDelete={handleDeleteEvent}
             isLoadingDelete={loadingDelete}
             onEdit={handleEditEvent}
+            isPrivate={isPrivate}
+            userStatus={userStatus}
           />
 
           <ParticipantsList
@@ -551,8 +521,7 @@ const EventDetails: React.FC = () => {
               id: c.comentario_id,
               authorId: c.user_id,
               author: c.autor_nome,
-              authorAvatar:
-                c.autor_avatar || "/placeholder.svg?height=40&width=40",
+              authorAvatar: c.autor_avatar || "/placeholder.svg?height=40&width=40",
               time: new Date(c.data).toLocaleString("pt-BR"),
               content: c.texto || "",
               attachedImageUrl: c.attachedImageUrl,

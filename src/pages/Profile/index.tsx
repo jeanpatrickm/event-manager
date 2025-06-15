@@ -43,8 +43,8 @@ interface ProfileEvent {
   descricao: string | null;
   image_capa: string | null;
   max_participantes: number | null;
-  data_evento: string; // Para verificar se o evento já passou
-  inscricao: { count: number }[]; // Para obter a contagem de inscritos
+  data_evento: string; 
+  inscricao: { count: number }[];
 }
 interface EditProfileFormData {
   primeiro_nome: string;
@@ -82,9 +82,7 @@ const ProfilePage: React.FC = () => {
     linkedin_link: "",
   });
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
-  const [updateProfileError, setUpdateProfileError] = useState<string | null>(
-    null
-  );
+  const [updateProfileError, setUpdateProfileError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
@@ -98,22 +96,13 @@ const ProfilePage: React.FC = () => {
       setUploadError(null);
 
       try {
-        const {
-          data: { user: loggedInUser },
-          error: authError,
-        } = await supabase.auth.getUser();
+        const { data: { user: loggedInUser } } = await supabase.auth.getUser();
         
-        if (authError) {
-          console.error("Erro de autenticação:", authError?.message);
-        }
-
         setCurrentUser(loggedInUser);
         const idToFetch = userId || loggedInUser?.id;
 
         if (!idToFetch) {
-          setProfileErrorMsg(
-            "Não foi possível identificar o perfil a ser exibido."
-          );
+          setProfileErrorMsg("Não foi possível identificar o perfil a ser exibido.");
           setLoadingProfile(false);
           setLoadingEvents(false);
           return;
@@ -121,9 +110,7 @@ const ProfilePage: React.FC = () => {
 
         const { data: userProfile, error: fetchProfileError } = await supabase
           .from("usuario")
-          .select(
-            "user_id, nome_usuario, email, primeiro_nome, sobrenome, foto_perfil, biografia, data_criacao, data_atualizacao, instagram_link, linkedin_link"
-          )
+          .select("user_id, nome_usuario, email, primeiro_nome, sobrenome, foto_perfil, biografia, data_criacao, data_atualizacao, instagram_link, linkedin_link")
           .eq("user_id", idToFetch)
           .single();
 
@@ -147,9 +134,7 @@ const ProfilePage: React.FC = () => {
           instagram_link: userProfile.instagram_link || "",
           linkedin_link: userProfile.linkedin_link || "",
         });
-        setAvatarPreview(
-          userProfile.foto_perfil || "/images/default-avatar.png"
-        );
+        setAvatarPreview(userProfile.foto_perfil || "/images/default-avatar.png");
         setLoadingProfile(false);
 
         const [createdRes, inscriptionsRes] = await Promise.all([
@@ -157,24 +142,23 @@ const ProfilePage: React.FC = () => {
             .from("eventos")
             .select("*, inscricao(count)")
             .eq("user_id", idToFetch)
+             // CORREÇÃO: Adicionado filtro para contar apenas inscrições aprovadas.
+            .eq("inscricao.status", "aprovado")
             .order("data_criacao", { ascending: false }),
           supabase
             .from("inscricao")
             .select("eventos!inner(*, inscricao(count))")
-            .eq("user_id", idToFetch),
+            .eq("user_id", idToFetch)
+            .eq("status", "aprovado") // Filtra apenas as inscrições que o usuário de fato participa (aprovadas)
+             // CORREÇÃO: Adicionado filtro para a contagem aninhada.
+            .eq("eventos.inscricao.status", "aprovado")
         ]);
 
-        if (createdRes.error) {
-          throw createdRes.error;
-        }
+        if (createdRes.error) throw createdRes.error;
         setCreatedEvents(createdRes.data || []);
 
-        if (inscriptionsRes.error) {
-          throw inscriptionsRes.error;
-        }
-        const joined = (inscriptionsRes.data || [])
-          .map((item) => item.eventos)
-          .filter(Boolean) as unknown as ProfileEvent[];
+        if (inscriptionsRes.error) throw inscriptionsRes.error;
+        const joined = (inscriptionsRes.data || []).map((item) => item.eventos).filter(Boolean) as unknown as ProfileEvent[];
         setJoinedEvents(joined || []);
       } catch (error: any) {
         console.error("Erro ao carregar dados da página de perfil:", error);
@@ -188,6 +172,8 @@ const ProfilePage: React.FC = () => {
     fetchAllData();
   }, [userId]);
 
+  // ... (restante do componente permanece o mesmo)
+  // --- Nenhuma alteração necessária abaixo desta linha no arquivo ---
   const handleAvatarChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -416,9 +402,7 @@ const ProfilePage: React.FC = () => {
     return (
       <Container>
         <Sidebar />
-        <ProfileContainer>
-          <div>Carregando...</div>
-        </ProfileContainer>
+        <ProfileContainer><div>Carregando...</div></ProfileContainer>
       </Container>
     );
   }
@@ -439,19 +423,12 @@ const ProfilePage: React.FC = () => {
     return (
       <Container>
         <Sidebar />
-        <ProfileContainer>
-          <p>Não foi possível carregar o perfil.</p>
-        </ProfileContainer>
+        <ProfileContainer><p>Não foi possível carregar o perfil.</p></ProfileContainer>
       </Container>
     );
   }
 
-  // 2. VERIFICAÇÃO MAIS SEGURA para saber se é o dono do perfil
-  const isMyOwnProfile = !!(
-    currentUser &&
-    profileData &&
-    currentUser.id === profileData.user_id
-  );
+  const isMyOwnProfile = !!(currentUser && profileData && currentUser.id === profileData.user_id);
 
   return (
     <Container>
@@ -460,11 +437,7 @@ const ProfilePage: React.FC = () => {
         <TopBar />
         <ProfileHeader
           username={profileData.nome_usuario}
-          displayName={
-            `${profileData.primeiro_nome || ""} ${
-              profileData.sobrenome || ""
-            }`.trim() || profileData.nome_usuario
-          }
+          displayName={`${profileData.primeiro_nome || ""} ${profileData.sobrenome || ""}`.trim() || profileData.nome_usuario}
           avatarUrl={avatarPreview || "/images/default-avatar.png"}
           bannerUrl={undefined}
           events={createdEvents.length}
@@ -482,107 +455,36 @@ const ProfilePage: React.FC = () => {
         {isEditing && isMyOwnProfile ? (
           <ProfileContent>
             <EditForm onSubmit={handleProfileUpdateSubmit}>
-              <SectionTitle style={{ marginBottom: "20px" }}>
-                Editar Informações do Perfil
-              </SectionTitle>
+              <SectionTitle style={{ marginBottom: "20px" }}>Editar Informações do Perfil</SectionTitle>
               <FormGroup>
                 <label htmlFor="primeiro_nome">Primeiro Nome:</label>
-                <FormInput
-                  type="text"
-                  id="primeiro_nome"
-                  name="primeiro_nome"
-                  value={editFormData.primeiro_nome}
-                  onChange={handleProfileInputChange}
-                  disabled={isUpdatingProfile}
-                />
+                <FormInput type="text" id="primeiro_nome" name="primeiro_nome" value={editFormData.primeiro_nome} onChange={handleProfileInputChange} disabled={isUpdatingProfile} />
               </FormGroup>
               <FormGroup>
                 <label htmlFor="sobrenome">Sobrenome:</label>
-                <FormInput
-                  type="text"
-                  id="sobrenome"
-                  name="sobrenome"
-                  value={editFormData.sobrenome}
-                  onChange={handleProfileInputChange}
-                  disabled={isUpdatingProfile}
-                />
+                <FormInput type="text" id="sobrenome" name="sobrenome" value={editFormData.sobrenome} onChange={handleProfileInputChange} disabled={isUpdatingProfile} />
               </FormGroup>
               <FormGroup>
                 <label htmlFor="nome_usuario">Nome de Usuário*:</label>
-                <FormInput
-                  type="text"
-                  id="nome_usuario"
-                  name="nome_usuario"
-                  value={editFormData.nome_usuario}
-                  onChange={handleProfileInputChange}
-                  disabled={isUpdatingProfile}
-                  required
-                />
+                <FormInput type="text" id="nome_usuario" name="nome_usuario" value={editFormData.nome_usuario} onChange={handleProfileInputChange} disabled={isUpdatingProfile} required />
                 <small>Este nome é único e usado para @.</small>
               </FormGroup>
               <FormGroup>
                 <label htmlFor="biografia">Biografia:</label>
-                <FormTextArea
-                  id="biografia"
-                  name="biografia"
-                  value={editFormData.biografia}
-                  onChange={handleProfileInputChange}
-                  rows={4}
-                  disabled={isUpdatingProfile}
-                />
+                <FormTextArea id="biografia" name="biografia" value={editFormData.biografia} onChange={handleProfileInputChange} rows={4} disabled={isUpdatingProfile} />
               </FormGroup>
               <FormGroup>
                 <label htmlFor="instagram_link">Link do Instagram:</label>
-                <FormInput
-                  type="url"
-                  id="instagram_link"
-                  name="instagram_link"
-                  value={editFormData.instagram_link}
-                  onChange={handleProfileInputChange}
-                  placeholder="https://instagram.com/seuusuario"
-                  disabled={isUpdatingProfile}
-                />
+                <FormInput type="url" id="instagram_link" name="instagram_link" value={editFormData.instagram_link} onChange={handleProfileInputChange} placeholder="https://instagram.com/seuusuario" disabled={isUpdatingProfile} />
               </FormGroup>
               <FormGroup>
                 <label htmlFor="linkedin_link">Link do LinkedIn:</label>
-                <FormInput
-                  type="url"
-                  id="linkedin_link"
-                  name="linkedin_link"
-                  value={editFormData.linkedin_link}
-                  onChange={handleProfileInputChange}
-                  placeholder="https://linkedin.com/in/seuusuario"
-                  disabled={isUpdatingProfile}
-                />
+                <FormInput type="url" id="linkedin_link" name="linkedin_link" value={editFormData.linkedin_link} onChange={handleProfileInputChange} placeholder="https://linkedin.com/in/seuusuario" disabled={isUpdatingProfile} />
               </FormGroup>
-              {updateProfileError && (
-                <p
-                  style={{
-                    color: "var(--cor-erro, red)",
-                    marginBottom: "10px",
-                  }}
-                >
-                  {updateProfileError}
-                </p>
-              )}
+              {updateProfileError && (<p style={{ color: "var(--cor-erro, red)", marginBottom: "10px" }}>{updateProfileError}</p>)}
               <div style={{ display: "flex", gap: "10px" }}>
-                <SubmitButton type="submit" disabled={isUpdatingProfile}>
-                  {isUpdatingProfile ? "Salvando..." : "Salvar Alterações"}
-                </SubmitButton>
-                <button
-                  type="button"
-                  onClick={() => setIsEditing(false)}
-                  style={{
-                    padding: "10px 20px",
-                    background: "var(--color-dark-grey-text)",
-                    border: "none",
-                    color: "white",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                  }}
-                >
-                  Cancelar
-                </button>
+                <SubmitButton type="submit" disabled={isUpdatingProfile}>{isUpdatingProfile ? "Salvando..." : "Salvar Alterações"}</SubmitButton>
+                <button type="button" onClick={() => setIsEditing(false)} style={{ padding: "10px 20px", background: "var(--color-dark-grey-text)", border: "none", color: "white", borderRadius: "6px", cursor: "pointer" }}>Cancelar</button>
               </div>
             </EditForm>
           </ProfileContent>

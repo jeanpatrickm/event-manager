@@ -27,9 +27,8 @@ interface ProfileEvent {
   descricao: string | null;
   image_capa: string | null;
   max_participantes: number | null;
-  data_evento: string; // Adicionado para verificar se o evento já passou
-  inscricao: { count: number }[]; // Para obter a contagem de inscritos
-
+  data_evento: string; 
+  inscricao: { count: number }[];
 }
 
 const MyEventsPage: React.FC = () => {
@@ -53,21 +52,13 @@ const MyEventsPage: React.FC = () => {
       setProfileErrorMsg(null);
       
       try {
-        const {
-          data: { user: loggedInUser },
-          error: authError,
-        } = await supabase.auth.getUser();
-        if (authError) {
-          console.error("Erro de autenticação:", authError?.message);
-        }
+        const { data: { user: loggedInUser } } = await supabase.auth.getUser();
+        
         setCurrentUser(loggedInUser);
-
         const idToFetch = userId || loggedInUser?.id;
 
         if (!idToFetch) {
-          setProfileErrorMsg(
-            "Não foi possível identificar o perfil a ser exibido."
-          );
+          setProfileErrorMsg("Não foi possível identificar o perfil a ser exibido.");
           setLoadingProfile(false);
           setLoadingEvents(false);
           return;
@@ -93,28 +84,27 @@ const MyEventsPage: React.FC = () => {
         setProfileData(userProfile);
         setLoadingProfile(false);
 
-        // Adicionado 'data_evento' nas duas queries abaixo
         const [createdRes, inscriptionsRes] = await Promise.all([
           supabase
             .from("eventos")
             .select("*, inscricao(count)")
             .eq("user_id", idToFetch)
+            // CORREÇÃO: Adicionado filtro para contar apenas inscrições aprovadas.
+            .eq("inscricao.status", "aprovado")
             .order("data_criacao", { ascending: false }),
           supabase
             .from("inscricao")
             .select("eventos!inner(*, inscricao(count))")
-            .eq("user_id", idToFetch),
+            .eq("user_id", idToFetch)
+            .eq("status", "aprovado") // Filtra apenas as inscrições que o usuário de fato participa (aprovadas)
+            // CORREÇÃO: Adicionado filtro para a contagem aninhada.
+            .eq("eventos.inscricao.status", "aprovado")
         ]);
 
-        if (createdRes.error) {
-          throw createdRes.error;
-        }
+        if (createdRes.error) throw createdRes.error;
         setCreatedEvents(createdRes.data || []);
 
-        if (inscriptionsRes.error) {
-          throw inscriptionsRes.error;
-        }
-        // Mapeia os resultados para o formato esperado
+        if (inscriptionsRes.error) throw inscriptionsRes.error;
         const joined = (inscriptionsRes.data || []).map(item => item.eventos).filter(Boolean) as ProfileEvent[];
         setJoinedEvents(joined || []);
         
@@ -130,7 +120,7 @@ const MyEventsPage: React.FC = () => {
   }, [userId]);
 
   const today = new Date();
-  today.setHours(23, 59, 59, 999); // Garante que a comparação inclua o dia inteiro
+  today.setHours(23, 59, 59, 999);
 
   const tabs = [
     {
@@ -211,9 +201,7 @@ const MyEventsPage: React.FC = () => {
     return (
       <Container>
         <Sidebar />
-        <ProfileContainer>
-          <div>Carregando...</div>
-        </ProfileContainer>
+        <ProfileContainer><div>Carregando...</div></ProfileContainer>
       </Container>
     );
   }
@@ -234,9 +222,7 @@ const MyEventsPage: React.FC = () => {
     return (
       <Container>
         <Sidebar />
-        <ProfileContainer>
-          <p>Não foi possível carregar.</p>
-        </ProfileContainer>
+        <ProfileContainer><p>Não foi possível carregar.</p></ProfileContainer>
       </Container>
     );
   }
@@ -246,11 +232,9 @@ const MyEventsPage: React.FC = () => {
       <Sidebar />
       <ProfileContainer>
         <TopBar />
-
         <ProfileContent>
           <TabNavigation tabs={tabs} defaultTab={"created"} />
         </ProfileContent>
-
       </ProfileContainer>
     </Container>
   );
