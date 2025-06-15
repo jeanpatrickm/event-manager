@@ -5,7 +5,7 @@ import {
   CardContent,
   CardTitle,
   CardDescription,
-  CardStats,
+  //CardStats,
   StatItem,
   StatValue,
   CardOverlay,
@@ -17,7 +17,8 @@ interface EventCardProps {
   description: string;
   image: string;
   onlineCount?: number;
-  memberCount?: number;
+  maxParticipants: number | null;
+  currentParticipants?: number;
   size?: "normal" | "large";
 }
 
@@ -25,34 +26,41 @@ const EventCard: React.FC<EventCardProps> = ({
   title,
   description,
   image,
-  onlineCount,
-  memberCount,
+  //onlineCount,
+  maxParticipants,
+  currentParticipants = 0,
   size = "normal",
 }) => {
+  const isFull = maxParticipants !== null && currentParticipants >= maxParticipants;
   return (
     <CardContainer size={size}>
       <CardImage src={image} alt={title} />
       <CardOverlay />
       <CardContent>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
+        <CardTitle>{title.length > 45 ? `${title.substring(0, 45)}...` : title}</CardTitle>
+        <CardDescription>{description.length > 25 ? `${description.substring(0, 25)}...` : description}</CardDescription>
 
-        {(onlineCount || memberCount) && (
+        {/* {(onlineCount || memberCount) && (
           <CardStats>
             {onlineCount !== undefined && (
               <StatItem>
                 <StatValue>{onlineCount.toLocaleString()} Online</StatValue>
               </StatItem>
-            )}
+            )} */}
 
-            {memberCount !== undefined && (
-              <StatItem>
+            {maxParticipants !== undefined && (
+              <StatItem $isFull={isFull}>
                 <Users size={14} />
-                <StatValue>{memberCount.toLocaleString()} Members</StatValue>
+                <StatValue>
+                  {currentParticipants}
+                  {maxParticipants ? `/${maxParticipants}` : ''}
+                  {' '}
+                  {currentParticipants === 1 ? 'Membro' : 'Membros'}
+                </StatValue>
               </StatItem>
             )}
-          </CardStats>
-        )}
+          {/* </CardStats>
+        )} */}
       </CardContent>
     </CardContainer>
   );

@@ -26,7 +26,10 @@ interface ProfileEvent {
   titulo: string;
   descricao: string | null;
   image_capa: string | null;
+  max_participantes: number | null;
   data_evento: string; // Adicionado para verificar se o evento já passou
+  inscricao: { count: number }[]; // Para obter a contagem de inscritos
+
 }
 
 const MyEventsPage: React.FC = () => {
@@ -94,14 +97,12 @@ const MyEventsPage: React.FC = () => {
         const [createdRes, inscriptionsRes] = await Promise.all([
           supabase
             .from("eventos")
-            .select(
-              "evento_id, titulo, descricao, image_capa, data_evento"
-            )
+            .select("*, inscricao(count)")
             .eq("user_id", idToFetch)
             .order("data_criacao", { ascending: false }),
           supabase
             .from("inscricao")
-            .select("eventos(evento_id, titulo, descricao, image_capa, data_evento)") // Buscando dados do evento diretamente
+            .select("eventos!inner(*, inscricao(count))")
             .eq("user_id", idToFetch),
         ]);
 
@@ -158,6 +159,8 @@ const MyEventsPage: React.FC = () => {
                     description={event.descricao || ""}
                     imageUrl={event.image_capa || "/placeholder.svg"}
                     isPast={new Date(event.data_evento) < today}
+                    currentParticipants={event.inscricao[0]?.count ?? 0}
+                    maxParticipants={event.max_participantes}
                   />
                 </Link>
               ))}
@@ -192,6 +195,8 @@ const MyEventsPage: React.FC = () => {
                     description={event.descricao || ""}
                     imageUrl={event.image_capa || "/placeholder.svg"}
                     isPast={new Date(event.data_evento) < today}
+                    currentParticipants={event.inscricao[0]?.count ?? 0}
+                    maxParticipants={event.max_participantes}
                   />
                 </Link>
               ))}

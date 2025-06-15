@@ -30,7 +30,7 @@ interface EventInfoProps {
   time: string;
   location: string;
   currentParticipants: number;
-  maxParticipants: number;
+  maxParticipants: number | null; // Alterado para aceitar null
   category: string;
   tags: string[];
   status: "upcoming" | "ongoing" | "past";
@@ -62,14 +62,22 @@ const EventInfo: React.FC<EventInfoProps> = ({
 }) => {
   const [isHoveringUnsubscribe, setIsHoveringUnsubscribe] = useState(false);
 
+  // 1. Verifica se o evento está cheio. Só é 'true' se maxParticipants for um número.
+  const isFull =
+    maxParticipants !== null && currentParticipants >= maxParticipants;
+
   const handleJoinButtonClick = () => {
     if (isLoadingJoin) return;
-
+    
     if (isJoined) {
       if (window.confirm("Tem certeza que deseja cancelar a inscrição?")) {
         onJoin();
       }
     } else {
+      if(isFull) {
+        alert("Este evento já atingiu o número máximo de participantes.");
+        return;
+      }
       onJoin();
     }
   };
@@ -79,7 +87,10 @@ const EventInfo: React.FC<EventInfoProps> = ({
     buttonText = "Processando...";
   } else if (isJoined) {
     buttonText = isHoveringUnsubscribe ? "Cancelar Inscrição" : "Inscrito";
+  } else if (isFull) {
+    buttonText = "Vagas Esgotadas";
   }
+
 
   return (
     <InfoSection>
@@ -98,10 +109,18 @@ const EventInfo: React.FC<EventInfoProps> = ({
         </InfoItem>
         <InfoItem>
           <InfoLabel>
+            <MapPin size={18} /> Local
+          </InfoLabel>
+          <InfoValue>{location}</InfoValue>
+        </InfoItem>
+        <InfoItem>
+          <InfoLabel>
             <Users size={18} /> Participantes
           </InfoLabel>
-          <InfoValue>
-            {currentParticipants}/{maxParticipants}
+          {/* 2. Passa a propriedade '$isFull' para o componente de estilo */}
+          <InfoValue $isFull={isFull}>
+            {currentParticipants}
+            {maxParticipants ? `/${maxParticipants}` : ""}
           </InfoValue>
         </InfoItem>
         <InfoItem>
@@ -109,12 +128,6 @@ const EventInfo: React.FC<EventInfoProps> = ({
             <Tag size={18} /> Categoria
           </InfoLabel>
           <InfoValue>{category}</InfoValue>
-        </InfoItem>
-        <InfoItem>
-          <InfoLabel>
-            <MapPin size={18} /> Local
-          </InfoLabel>
-          <InfoValue>{location}</InfoValue>
         </InfoItem>
       </InfoGrid>
 
@@ -129,7 +142,7 @@ const EventInfo: React.FC<EventInfoProps> = ({
           $joined={isJoined}
           $hoveringUnsubscribe={isJoined && isHoveringUnsubscribe}
           onClick={handleJoinButtonClick}
-          disabled={status === "past" || isLoadingJoin}
+          disabled={status === "past" || isLoadingJoin || (isFull && !isJoined)}
           onMouseEnter={() => {
             if (isJoined && !isLoadingJoin) {
               setIsHoveringUnsubscribe(true);

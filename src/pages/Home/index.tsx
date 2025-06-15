@@ -19,6 +19,7 @@ interface Event {
   data_evento: string;
   horario: string;
   max_participantes: number | null;
+  inscricao: { count: number }[]; // Para obter a contagem de inscritos
 }
 
 const HomePage: React.FC = () => {
@@ -48,13 +49,14 @@ const HomePage: React.FC = () => {
         const today = new Date().toISOString().split("T")[0];
 
         let query = supabase
-          .from("eventos")
-          .select(
-            "evento_id, titulo, descricao, image_capa, publico, data_evento, horario, max_participantes"
-          )
-          .eq("publico", true)
-          // Adiciona o filtro para pegar eventos de hoje em diante
-          .gte("data_evento", today);
+            .from("eventos")
+            .select("*, inscricao(count)")
+            .eq("publico", true)
+            // Adiciona o filtro para pegar eventos de hoje em diante
+            .gte("data_evento", today);
+          supabase
+            .from("inscricao")
+            .select("eventos!inner(*, inscricao(count))")
 
         if (debouncedTerm) {
           query = query.or(
@@ -127,7 +129,8 @@ const HomePage: React.FC = () => {
                       event.image_capa ||
                       "/placeholder.svg?height=300&width=500"
                     }
-                    memberCount={event.max_participantes || undefined}
+                    currentParticipants={event.inscricao[0]?.count ?? 0}
+                    maxParticipants={event.max_participantes}
                   />
                 </Link>
               ))

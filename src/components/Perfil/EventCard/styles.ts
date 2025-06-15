@@ -52,8 +52,12 @@ export const EventStatus = styled.span`
   align-items: center;
 `;
 
-export const EventMembers = styled.span`
+// Adicionada a prop '$isFull' para controle de estilo
+export const EventMembers = styled.span<{ $isFull?: boolean }>`
   display: flex;
   align-items: center;
   gap: 5px;
+  /* Aplica a cor vermelha se '$isFull' for verdadeiro, senão, usa a cor padrão */
+  color: ${(props) =>
+    props.$isFull ? "var(--color-danger)" : "var(--white)"};
 `;

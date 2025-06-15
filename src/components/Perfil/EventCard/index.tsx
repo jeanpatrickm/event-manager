@@ -16,7 +16,8 @@ interface EventCardProps {
   description: string;
   imageUrl?: string;
   isPast?: boolean; // Nova prop para controlar o estilo
-  membersCount?: number;
+  maxParticipants: number | null;
+  currentParticipants?: number;
 }
 
 const EventCard: React.FC<EventCardProps> = ({
@@ -24,16 +25,20 @@ const EventCard: React.FC<EventCardProps> = ({
   description,
   imageUrl,
   isPast = false, // Valor padrão é false
-  membersCount,
+  maxParticipants,
+  currentParticipants = 0,
 }) => {
+  const isFull = maxParticipants !== null && currentParticipants >= maxParticipants;
   return (
     // Passando a prop $isPast para o container estilizado
     <EventCardContainer $isPast={isPast}>
       {imageUrl && <EventImage src={imageUrl} alt={title} />}
       <EventContent>
-        <EventTitle>{title}</EventTitle>
+        <EventTitle>
+          {title.length > 35 ? `${title.substring(0, 35)}...` : title}
+        </EventTitle>
         <EventDescription>
-           {description.length > 100 ? `${description.substring(0, 100)}...` : description}
+           {description.length > 50 ? `${description.substring(0, 50)}...` : description}
         </EventDescription>
         <EventFooter>
           {isPast ? (
@@ -41,10 +46,14 @@ const EventCard: React.FC<EventCardProps> = ({
           ) : (
             // Fragmento <>...</> para agrupar os elementos
             <>
-              {membersCount !== undefined && (
-                <EventMembers>
-                    <Users size={14} /> {membersCount} {membersCount === 1 ? 'Membro' : 'Membros'}
-                </EventMembers>
+              {maxParticipants !== undefined && (
+                <EventMembers $isFull={isFull}>
+                  <Users size={14} />
+                  {currentParticipants}
+                  {maxParticipants ? `/${maxParticipants}` : ''}
+                  {' '}
+                  {currentParticipants === 1 ? 'Membro' : 'Membros'}
+              </EventMembers>
               )}
               {<span style={{color: "lightblue"}}>Em Breve</span>}
             </>

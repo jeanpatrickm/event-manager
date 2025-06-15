@@ -66,10 +66,14 @@ export const CardStats = styled.div`
   font-size: 0.85rem;
 `;
 
-export const StatItem = styled.div`
+export const StatItem = styled.div<{ $isFull?: boolean }>`
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
+  font-size: 12px;
+  /* Aplica a cor vermelha se '$isFull' for verdadeiro, senão, usa a cor padrão */
+  color: ${(props) =>
+    props.$isFull ? "var(--color-danger)" : "var(--white)"};
 `;
 
 export const StatValue = styled.span`
