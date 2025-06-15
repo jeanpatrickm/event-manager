@@ -25,48 +25,43 @@ const HomePage: React.FC = () => {
   const [publicEvents, setPublicEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // 1. Estado para o valor imediato do input de busca
   const [searchTerm, setSearchTerm] = useState("");
-  // 2. Estado para o valor "atrasado" (debounced), que efetivamente dispara a busca
   const [debouncedTerm, setDebouncedTerm] = useState("");
 
-  // 3. Efeito para criar o "debounce" (atraso inteligente)
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedTerm(searchTerm);
-    }, 500); // Espera 500ms após o usuário parar de digitar
+    }, 500); 
 
-    // Limpa o timer anterior se o usuário digitar novamente
     return () => {
       clearTimeout(timer);
     };
-  }, [searchTerm]); // Roda sempre que o termo de busca imediato muda
+  }, [searchTerm]);
 
-  // 4. Efeito principal para buscar os dados, agora dependendo do termo "atrasado"
   useEffect(() => {
     const fetchPublicEvents = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Inicia a query base do Supabase
+        // Pega a data de hoje no formato YYYY-MM-DD
+        const today = new Date().toISOString().split("T")[0];
+
         let query = supabase
           .from("eventos")
           .select(
             "evento_id, titulo, descricao, image_capa, publico, data_evento, horario, max_participantes"
           )
-          .eq("publico", true);
+          .eq("publico", true)
+          // Adiciona o filtro para pegar eventos de hoje em diante
+          .gte("data_evento", today);
 
-        // Se houver um termo de busca, adiciona o filtro na query
         if (debouncedTerm) {
-          // .or() busca em múltiplos campos. 'ilike' é case-insensitive e busca por partes do texto ('%').
           query = query.or(
             `titulo.ilike.%${debouncedTerm}%,descricao.ilike.%${debouncedTerm}%`
           );
         }
 
-        // Adiciona a ordenação no final
         const { data, error: supabaseError } = await query.order(
           "data_evento",
           {
@@ -105,7 +100,7 @@ const HomePage: React.FC = () => {
           />
 
           <Section
-            title="Eventos Públicos"
+            title="Próximos Eventos Públicos"
             contentClassName="section-content-home"
           >
             {loading ? (
@@ -115,8 +110,8 @@ const HomePage: React.FC = () => {
             ) : publicEvents.length === 0 ? (
               <p>
                 {debouncedTerm
-                  ? "Nenhum evento encontrado para sua busca."
-                  : "Nenhum evento público encontrado."}
+                  ? "Nenhum evento futuro encontrado para sua busca."
+                  : "Nenhum evento público agendado no momento."}
               </p>
             ) : (
               publicEvents.map((event) => (

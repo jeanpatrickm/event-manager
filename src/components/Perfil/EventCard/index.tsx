@@ -1,5 +1,4 @@
 import type React from "react";
-import { Users } from "lucide-react";
 import {
   EventCardContainer,
   EventImage,
@@ -7,36 +6,49 @@ import {
   EventTitle,
   EventDescription,
   EventFooter,
-  EventStatus,
   EventMembers,
 } from "./styles";
+import { Users } from "lucide-react";
 
 interface EventCardProps {
+  id: string; // Adicionada a prop id para a key
   title: string;
   description: string;
   imageUrl?: string;
-  onlineCount: number;
-  membersCount: number;
+  isPast?: boolean; // Nova prop para controlar o estilo
+  membersCount?: number;
 }
 
 const EventCard: React.FC<EventCardProps> = ({
   title,
   description,
   imageUrl,
-  onlineCount,
+  isPast = false, // Valor padrão é false
   membersCount,
 }) => {
   return (
-    <EventCardContainer>
+    // Passando a prop $isPast para o container estilizado
+    <EventCardContainer $isPast={isPast}>
       {imageUrl && <EventImage src={imageUrl} alt={title} />}
       <EventContent>
         <EventTitle>{title}</EventTitle>
-        <EventDescription>{description}</EventDescription>
+        <EventDescription>
+           {description.length > 100 ? `${description.substring(0, 100)}...` : description}
+        </EventDescription>
         <EventFooter>
-          <EventStatus>{onlineCount} Online</EventStatus>
-          <EventMembers>
-            <Users size={14} /> {membersCount} Members
-          </EventMembers>
+          {isPast ? (
+            <span style={{color: "var(--color-danger)"}}>Encerrado</span>
+          ) : (
+            // Fragmento <>...</> para agrupar os elementos
+            <>
+              {membersCount !== undefined && (
+                <EventMembers>
+                    <Users size={14} /> {membersCount} {membersCount === 1 ? 'Membro' : 'Membros'}
+                </EventMembers>
+              )}
+              {<span style={{color: "lightblue"}}>Em Breve</span>}
+            </>
+          )}
         </EventFooter>
       </EventContent>
     </EventCardContainer>

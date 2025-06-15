@@ -2,7 +2,7 @@
 
 import type React from "react";
 import { useEffect, useState} from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import {
   ProfileContainer,
   ProfileContent,
@@ -20,40 +20,26 @@ import TopBar from "../../components/CreateEvent/TopBar";
 
 interface UserProfile {
   user_id: string;
-  nome_usuario: string;
-  email?: string;
-  primeiro_nome?: string | null;
-  sobrenome?: string | null;
-  foto_perfil: string | null;
-  biografia?: string | null;
-  data_criacao?: string;
-  data_atualizacao?: string;
-  instagram_link?: string | null;
-  linkedin_link?: string | null;
 }
 interface ProfileEvent {
   evento_id: string;
   titulo: string;
   descricao: string | null;
   image_capa: string | null;
-  max_participantes: number | null;
+  data_evento: string; // Adicionado para verificar se o evento já passou
 }
 
 const MyEventsPage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
-  const navigate = useNavigate();
 
   const [profileData, setProfileData] = useState<UserProfile | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [profileErrorMsg, setProfileErrorMsg] = useState<string | null>(null);
 
-  const [uploadError, setUploadError] = useState<string | null>(null);
-
   const [createdEvents, setCreatedEvents] = useState<ProfileEvent[]>([]);
   const [joinedEvents, setJoinedEvents] = useState<ProfileEvent[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
-  const [eventsErrorMsg, setEventsErrorMsg] = useState<string | null>(null);
-
+  
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -62,9 +48,7 @@ const MyEventsPage: React.FC = () => {
       setLoadingEvents(true);
       setProfileData(null);
       setProfileErrorMsg(null);
-      setEventsErrorMsg(null);
-      setUploadError(null);
-
+      
       try {
         const {
           data: { user: loggedInUser },
@@ -88,9 +72,7 @@ const MyEventsPage: React.FC = () => {
 
         const { data: userProfile, error: fetchProfileError } = await supabase
           .from("usuario")
-          .select(
-            "user_id, nome_usuario, email, primeiro_nome, sobrenome, foto_perfil, biografia, data_criacao, data_atualizacao, instagram_link, linkedin_link"
-          )
+          .select("user_id")
           .eq("user_id", idToFetch)
           .single();
 
@@ -108,17 +90,18 @@ const MyEventsPage: React.FC = () => {
         setProfileData(userProfile);
         setLoadingProfile(false);
 
+        // Adicionado 'data_evento' nas duas queries abaixo
         const [createdRes, inscriptionsRes] = await Promise.all([
           supabase
             .from("eventos")
             .select(
-              "evento_id, titulo, descricao, image_capa, max_participantes"
+              "evento_id, titulo, descricao, image_capa, data_evento"
             )
             .eq("user_id", idToFetch)
             .order("data_criacao", { ascending: false }),
           supabase
             .from("inscricao")
-            .select("evento_id")
+            .select("eventos(evento_id, titulo, descricao, image_capa, data_evento)") // Buscando dados do evento diretamente
             .eq("user_id", idToFetch),
         ]);
 
@@ -130,29 +113,13 @@ const MyEventsPage: React.FC = () => {
         if (inscriptionsRes.error) {
           throw inscriptionsRes.error;
         }
-        if (inscriptionsRes.data && inscriptionsRes.data.length > 0) {
-          const eventIdsToFetch = inscriptionsRes.data.map(
-            (insc) => insc.evento_id
-          );
-          const { data: joinedEventsData, error: joinedEventsError } =
-            await supabase
-              .from("eventos")
-              .select(
-                "evento_id, titulo, descricao, image_capa, max_participantes"
-              )
-              .in("evento_id", eventIdsToFetch)
-              .order("data_evento", { ascending: true });
-          if (joinedEventsError) {
-            throw joinedEventsError;
-          }
-          setJoinedEvents(joinedEventsData || []);
-        } else {
-          setJoinedEvents([]);
-        }
+        // Mapeia os resultados para o formato esperado
+        const joined = (inscriptionsRes.data || []).map(item => item.eventos).filter(Boolean) as ProfileEvent[];
+        setJoinedEvents(joined || []);
+        
       } catch (error: any) {
         console.error("Erro ao carregar dados da página:", error);
         setProfileErrorMsg("Ocorreu um erro ao carregar.");
-        setEventsErrorMsg("Ocorreu um erro ao carregar os eventos.");
       } finally {
         setLoadingProfile(false);
         setLoadingEvents(false);
@@ -160,6 +127,9 @@ const MyEventsPage: React.FC = () => {
     };
     fetchAllData();
   }, [userId]);
+
+  const today = new Date();
+  today.setHours(23, 59, 59, 999); // Garante que a comparação inclua o dia inteiro
 
   const tabs = [
     {
@@ -186,10 +156,8 @@ const MyEventsPage: React.FC = () => {
                     id={event.evento_id}
                     title={event.titulo}
                     description={event.descricao || ""}
-                    imageUrl={
-                      event.image_capa ||
-                      "/placeholder.svg?height=200&width=300"
-                    }
+                    imageUrl={event.image_capa || "/placeholder.svg"}
+                    isPast={new Date(event.data_evento) < today}
                   />
                 </Link>
               ))}
@@ -222,10 +190,8 @@ const MyEventsPage: React.FC = () => {
                     id={event.evento_id}
                     title={event.titulo}
                     description={event.descricao || ""}
-                    imageUrl={
-                      event.image_capa ||
-                      "/placeholder.svg?height=200&width=300"
-                    }
+                    imageUrl={event.image_capa || "/placeholder.svg"}
+                    isPast={new Date(event.data_evento) < today}
                   />
                 </Link>
               ))}
