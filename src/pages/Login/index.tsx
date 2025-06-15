@@ -44,7 +44,7 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [loginError, setLoginError] = useState<string | null>(null); // Novo estado para erros
+  const [loginError, setLoginError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   async function signInUser(email: string, password: string) {
@@ -59,7 +59,7 @@ const LoginPage: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setLoginError(null); // Limpa qualquer erro anterior
+    setLoginError(null);
 
     signInUser(email, password)
       .then((data) => {
@@ -68,7 +68,7 @@ const LoginPage: React.FC = () => {
       })
       .catch((error) => {
         console.error("Erro ao fazer login:", error);
-        setLoginError(error.message || "Ocorreu um erro ao fazer login."); // Exibe a mensagem de erro
+        setLoginError(error.message || "Ocorreu um erro ao fazer login.");
       })
       .finally(() => {
         setIsLoading(false);
