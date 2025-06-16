@@ -22,6 +22,7 @@ import ParticipantsList from "../../components/EventDetails/ParticipantsList";
 import CommentSection from "../../components/EventDetails/ComentSection";
 import ApprovalQueue from "../../components/EventDetails/ApprovalQueue";
 
+// ... (as interfaces permanecem as mesmas)
 interface OrganizerData {
   user_id: string;
   nome_completo: string;
@@ -37,7 +38,7 @@ interface DetailedEventData {
   local: string | null;
   max_participantes: number | null;
   presencial: boolean;
-  publico: boolean; // Adicionado para verificação
+  publico: boolean;
   link_online: string | null;
   user_id: string;
   cod_categoria: number;
@@ -63,6 +64,7 @@ interface CommentDBData {
 }
 type EventStatus = "upcoming" | "ongoing" | "past" | "undefined";
 
+
 const EventDetails: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
@@ -77,12 +79,13 @@ const EventDetails: React.FC = () => {
   const [loadingInteraction, setLoadingInteraction] = useState(false);
   const [loadingComment, setLoadingComment] = useState(false);
   const [loadingDelete, setLoadingDelete] = useState(false);
-
-  // Novos estados para o fluxo de aprovação
   const [isPrivate, setIsPrivate] = useState(false);
-  const [userStatus, setUserStatus] = useState<'nao_inscrito' | 'pendente' | 'aprovado' | 'recusado'>('nao_inscrito');
   const [pendingRequests, setPendingRequests] = useState<ParticipantData[]>([]);
+  
+  // CORREÇÃO: Adicionado 'convidado' à definição de tipo do estado.
+  const [userStatus, setUserStatus] = useState<'nao_inscrito' | 'pendente' | 'aprovado' | 'recusado' | 'convidado'>('nao_inscrito');
 
+  // ... (useEffect para buscar a sessão continua o mesmo)
   useEffect(() => {
     const getSession = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -97,6 +100,7 @@ const EventDetails: React.FC = () => {
     };
   }, []);
 
+  // ... (useEffect para buscar detalhes do evento continua o mesmo)
   useEffect(() => {
     if (!eventId) {
       setError("ID do evento não fornecido.");
@@ -165,6 +169,7 @@ const EventDetails: React.FC = () => {
           }
         }
 
+        // ... (resto da busca de dados continua o mesmo)
         const { data: commentsData, error: commentsError } = await supabase
           .from("comentario")
           .select(`comentario_id, texto, data, user_id, evento_id, foto_id, usuario:user_id (user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario), galeria_item:foto_id (foto_id, foto_url)`)
@@ -196,8 +201,37 @@ const EventDetails: React.FC = () => {
     fetchEventDetails();
   }, [eventId, currentUser]);
 
-  // Em src/pages/EventDetails/index.tsx
+  // CORREÇÃO: Função dedicada para aceitar o convite
+  const handleAcceptInvite = async () => {
+    if (!currentUser || !eventData) {
+      alert("Você precisa estar logado para realizar esta ação.");
+      return;
+    }
+    setLoadingInteraction(true);
+    try {
+      const { error } = await supabase.rpc('aceitar_convite_evento', { p_evento_id: eventData.evento_id });
+      if (error) throw error;
+      alert('Convite aceito com sucesso!');
+      setUserStatus('aprovado');
+      setIsJoined(true);
+      
+      const { data: userProfile } = await supabase.from("usuario").select("user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario").eq("user_id", currentUser.id).single();
+      if (userProfile && !participants.some(p => p.user_id === userProfile.user_id)) {
+        setParticipants((prev) => [...prev, {
+          user_id: userProfile.user_id,
+          nome_completo: `${userProfile.primeiro_nome || ""} ${userProfile.sobrenome || ""}`.trim() || userProfile.nome_usuario || "Você",
+          foto_perfil: userProfile.foto_perfil,
+        }]);
+      }
+    } catch (err: any) {
+      console.error("Erro ao aceitar convite:", err);
+      alert(`Erro: ${err.message}`);
+    } finally {
+      setLoadingInteraction(false);
+    }
+  };
 
+  // handleJoinEvent agora cuida apenas de sair ou solicitar/entrar
   const handleJoinEvent = async () => {
     if (!currentUser || !eventData) {
       alert("Você precisa estar logado para realizar esta ação.");
@@ -205,49 +239,28 @@ const EventDetails: React.FC = () => {
     }
     setLoadingInteraction(true);
     try {
-      if (userStatus === 'convidado') {
-        const { error } = await supabase.rpc('aceitar_convite_evento', { p_evento_id: eventData.evento_id });
-        if (error) throw error;
-        alert('Convite aceito com sucesso!');
-        setUserStatus('aprovado');
-        setIsJoined(true);
-        // Recarregar os dados para atualizar a lista de participantes seria ideal aqui, ou adicionar o usuário manualmente
-      } else if (isJoined) {
-        // Lógica para SAIR do evento (DELETE) continua a mesma
+      if (isJoined) {
         const { error: deleteError } = await supabase.from("inscricao").delete().match({ evento_id: eventData.evento_id, user_id: currentUser.id });
         if (deleteError) throw deleteError;
         setIsJoined(false);
         setUserStatus('nao_inscrito');
         setParticipants((prev) => prev.filter((p) => p.user_id !== currentUser.id));
       } else {
-        // Lógica para ENTRAR ou SOLICITAR
         if (isPrivate) {
-          // CORREÇÃO: Chame a nova função RPC em vez de fazer a lógica no cliente
-          const { error } = await supabase.rpc('solicitar_inscricao_evento', {
-            p_evento_id: eventData.evento_id
-          });
-
+          const { error } = await supabase.rpc('solicitar_inscricao_evento', { p_evento_id: eventData.evento_id });
           if (error) throw error;
-          
           setUserStatus('pendente');
           alert("Sua solicitação foi enviada ao organizador!");
-
         } else {
-          // Para eventos públicos, a lógica de inscrição direta continua igual
           if (eventData.max_participantes !== null && participants.length >= eventData.max_participantes) {
             alert("Desculpe, as vagas para este evento acabaram.");
             setLoadingInteraction(false);
             return;
           }
-          const { error: insertError } = await supabase.from("inscricao").upsert({ 
-              evento_id: eventData.evento_id, 
-              user_id: currentUser.id, 
-              status: 'aprovado' 
-          });
+          const { error: insertError } = await supabase.from("inscricao").upsert({ evento_id: eventData.evento_id, user_id: currentUser.id, status: 'aprovado' });
           if (insertError) throw insertError;
           setIsJoined(true);
           setUserStatus('aprovado');
-          
           const { data: userProfile } = await supabase.from("usuario").select("user_id, primeiro_nome, sobrenome, foto_perfil, nome_usuario").eq("user_id", currentUser.id).single();
           if (userProfile && !participants.some(p => p.user_id === userProfile.user_id)) {
             setParticipants((prev) => [...prev, {
@@ -266,7 +279,7 @@ const EventDetails: React.FC = () => {
     }
   };
 
-  // CRIE a função que será passada para o modal
+  // ... (O restante das funções handleSendInvites, manageRequest, handleAddComment, etc., continuam as mesmas)
   const handleSendInvites = async (selectedUserIds: string[]) => {
     if (!eventData) return;
     try {
@@ -306,7 +319,6 @@ const EventDetails: React.FC = () => {
     }
   };
 
-  // ... (restante das funções handleAddComment, handleDeleteEvent, handleEditEvent, getEventStatus sem alterações)
   const handleAddComment = async (
     commentText: string,
     imageFile?: File | null
@@ -427,7 +439,6 @@ const EventDetails: React.FC = () => {
     }
     setLoadingDelete(true);
     try {
-      // ATUALIZADO: Chamamos nossa nova função RPC em vez de deletar diretamente.
       const { error } = await supabase.rpc('cancelar_evento', {
         p_evento_id: eventData.evento_id
       });
@@ -475,6 +486,7 @@ const EventDetails: React.FC = () => {
     return "upcoming";
   };
   
+
   if (loading) return <Container><p>Carregando...</p></Container>;
   if (error) return <Container><p>Erro: {error}</p></Container>;
   if (!eventData) return <Container><p>Evento não encontrado.</p></Container>;
@@ -515,7 +527,7 @@ const EventDetails: React.FC = () => {
           <EventInfo
             date={displayDate}
             time={displayTime}
-            location={eventData.presencial ? eventData.local : eventData.link_online || "Online"}
+            location={eventData.presencial ? eventData.local || "Local não definido" : eventData.link_online || "Online"}
             currentParticipants={participants.length}
             maxParticipants={eventData.max_participantes}
             category={eventData.categoria || "Não categorizado"}
@@ -523,6 +535,7 @@ const EventDetails: React.FC = () => {
             status={eventStatus}
             isJoined={isJoined}
             onJoin={handleJoinEvent}
+            onAcceptInvite={handleAcceptInvite} // Passando a nova função
             isLoadingJoin={loadingInteraction}
             isOwner={isOwner}
             onDelete={handleDeleteEvent}
@@ -558,7 +571,6 @@ const EventDetails: React.FC = () => {
           />
         </ContentContainer>
       </div>
-      {/* RENDERIZE O MODAL */}
       {eventData && (
         <InviteModal
           isOpen={isInviteModalOpen}

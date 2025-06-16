@@ -43,7 +43,8 @@ interface EventInfoProps {
   onEdit: () => void;
   isPrivate: boolean;
   userStatus: 'nao_inscrito' | 'pendente' | 'aprovado' | 'recusado' | 'convidado';
-  onShareClick: () => void; // Adicionado na etapa anterior
+  onShareClick: () => void;
+  onAcceptInvite: () => void; // Sua nova prop
 }
 
 const EventInfo: React.FC<EventInfoProps> = ({
@@ -65,6 +66,7 @@ const EventInfo: React.FC<EventInfoProps> = ({
   isPrivate,
   userStatus,
   onShareClick,
+  onAcceptInvite,
 }) => {
   const [isHoveringUnsubscribe, setIsHoveringUnsubscribe] = useState(false);
 
@@ -78,6 +80,11 @@ const EventInfo: React.FC<EventInfoProps> = ({
         onJoin();
       }
     } else {
+      if (userStatus === 'convidado') {
+        onAcceptInvite(); // Chama a função específica para aceitar convite
+        return;
+      }
+      
       if(isFull) {
         alert("Este evento já atingiu o número máximo de participantes.");
         return;
@@ -93,6 +100,9 @@ const EventInfo: React.FC<EventInfoProps> = ({
     buttonText = isHoveringUnsubscribe ? "Cancelar Inscrição" : "Inscrito";
   } else {
     switch (userStatus) {
+      case 'convidado':
+        buttonText = "Aceitar Convite";
+        break;
       case 'nao_inscrito':
         buttonText = isPrivate ? "Solicitar Inscrição" : "Participar do Evento";
         break;
@@ -103,9 +113,6 @@ const EventInfo: React.FC<EventInfoProps> = ({
       case 'recusado':
         buttonText = "Solicitação Recusada";
         buttonDisabled = true;
-        break;
-      case 'convidado':
-        buttonText = "Aceitar Convite";
         break;
     }
   }
@@ -160,7 +167,6 @@ const EventInfo: React.FC<EventInfoProps> = ({
           {buttonText}
         </JoinEventButton>
 
-        {/* ALTERAÇÃO: Adicionada condição para renderizar o botão */}
         {(!isPrivate || isOwner) && (
           <ActionButton onClick={onShareClick}>
             <Share2 size={20} />
