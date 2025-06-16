@@ -10,6 +10,7 @@ import {
   Share2,
   Trash2,
   Edit,
+  Link as LinkIcon, // Importando o ícone de link
 } from "lucide-react";
 import {
   InfoSection,
@@ -23,12 +24,14 @@ import {
   JoinEventButton,
   ActionButton,
   DeleteEventButton,
+  InfoLink, // Importando o novo estilo de link
 } from "./styles";
 
 interface EventInfoProps {
   date: string;
   time: string;
   location: string;
+  isOnline: boolean; // NOVA PROP: para saber se o evento é online
   currentParticipants: number;
   maxParticipants: number | null;
   category: string;
@@ -44,13 +47,14 @@ interface EventInfoProps {
   isPrivate: boolean;
   userStatus: 'nao_inscrito' | 'pendente' | 'aprovado' | 'recusado' | 'convidado';
   onShareClick: () => void;
-  onAcceptInvite: () => void; // Sua nova prop
+  onAcceptInvite: () => void;
 }
 
 const EventInfo: React.FC<EventInfoProps> = ({
   date,
   time,
   location,
+  isOnline, // Usando a nova prop
   currentParticipants,
   maxParticipants,
   category,
@@ -81,7 +85,7 @@ const EventInfo: React.FC<EventInfoProps> = ({
       }
     } else {
       if (userStatus === 'convidado') {
-        onAcceptInvite(); // Chama a função específica para aceitar convite
+        onAcceptInvite();
         return;
       }
       
@@ -132,10 +136,22 @@ const EventInfo: React.FC<EventInfoProps> = ({
           <InfoLabel><Clock size={18} /> Horário</InfoLabel>
           <InfoValue>{time}</InfoValue>
         </InfoItem>
+        
+        {/* LÓGICA ATUALIZADA PARA O LOCAL */}
         <InfoItem>
-          <InfoLabel><MapPin size={18} /> Local</InfoLabel>
-          <InfoValue>{location}</InfoValue>
+            <InfoLabel>
+                {isOnline ? <LinkIcon size={18} /> : <MapPin size={18} />}
+                {isOnline ? "Link" : "Local"}
+            </InfoLabel>
+            {isOnline && location.startsWith('http') ? (
+                <InfoLink href={location} target="_blank" rel="noopener noreferrer">
+                    Acessar evento online
+                </InfoLink>
+            ) : (
+                <InfoValue>{location}</InfoValue>
+            )}
         </InfoItem>
+        
         <InfoItem>
           <InfoLabel><Users size={18} /> Participantes</InfoLabel>
           <InfoValue $isFull={isFull}>

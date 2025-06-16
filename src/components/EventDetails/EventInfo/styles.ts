@@ -35,13 +35,26 @@ export const InfoLabel = styled.div`
   }
 `;
 
-// 1. Adicionada a prop opcional '$isFull'
 export const InfoValue = styled.div<{ $isFull?: boolean }>`
   font-size: 16px;
   font-weight: 500;
-  /* 2. Aplica a cor vermelha se '$isFull' for verdadeiro, senão, usa a cor padrão */
   color: ${(props) => (props.$isFull ? "var(--color-danger)" : "var(--white)")};
 `;
+
+// NOVO: Estilo para o link do evento online
+export const InfoLink = styled.a`
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--logo-text);
+  text-decoration: none;
+  transition: all 0.2s;
+  
+  &:hover {
+    color: var(--color-azul-roxo);
+    text-decoration: underline;
+  }
+`;
+
 
 export const TagsContainer = styled.div`
   display: flex;
