@@ -398,25 +398,28 @@ const EventDetails: React.FC = () => {
       return;
     }
     const isConfirmed = window.confirm(
-      "Tem certeza que deseja excluir este evento?\nEsta ação não pode ser desfeita e removerá todas as inscrições e comentários associados."
+      "Tem certeza que deseja excluir este evento?\nEsta ação não pode ser desfeita. Se houver participantes, eles serão notificados do cancelamento."
     );
     if (!isConfirmed) {
       return;
     }
     setLoadingDelete(true);
     try {
-      const { error: deleteError } = await supabase
-        .from("eventos")
-        .delete()
-        .match({ evento_id: eventData.evento_id });
-      if (deleteError) {
-        throw deleteError;
+      // ATUALIZADO: Chamamos nossa nova função RPC em vez de deletar diretamente.
+      const { error } = await supabase.rpc('cancelar_evento', {
+        p_evento_id: eventData.evento_id
+      });
+
+      if (error) {
+        throw error;
       }
-      alert("Evento excluído com sucesso!");
+      
+      alert("Evento cancelado com sucesso!");
       navigate("/");
+
     } catch (err: any) {
-      console.error("Erro ao excluir evento:", err);
-      alert(`Falha ao excluir o evento: ${err.message}`);
+      console.error("Erro ao cancelar evento:", err);
+      alert(`Falha ao cancelar o evento: ${err.message}`);
     } finally {
       setLoadingDelete(false);
     }
