@@ -30,7 +30,7 @@ interface EventInfoProps {
   time: string;
   location: string;
   currentParticipants: number;
-  maxParticipants: number | null; // Alterado para aceitar null
+  maxParticipants: number | null;
   category: string;
   tags: string[];
   status: "upcoming" | "ongoing" | "past";
@@ -42,7 +42,8 @@ interface EventInfoProps {
   isLoadingDelete: boolean;
   onEdit: () => void;
   isPrivate: boolean;
-  userStatus: 'nao_inscrito' | 'pendente' | 'aprovado' | 'recusado';
+  userStatus: 'nao_inscrito' | 'pendente' | 'aprovado' | 'recusado' | 'convidado';
+  onShareClick: () => void; // Adicionado na etapa anterior
 }
 
 const EventInfo: React.FC<EventInfoProps> = ({
@@ -54,21 +55,20 @@ const EventInfo: React.FC<EventInfoProps> = ({
   category,
   tags,
   status,
-  isPrivate,
-  userStatus,
-  onJoin,
   isJoined,
+  onJoin,
   isLoadingJoin,
   isOwner,
   onDelete,
   isLoadingDelete,
   onEdit,
+  isPrivate,
+  userStatus,
+  onShareClick,
 }) => {
   const [isHoveringUnsubscribe, setIsHoveringUnsubscribe] = useState(false);
 
-  // 1. Verifica se o evento está cheio. Só é 'true' se maxParticipants for um número.
-  const isFull =
-    maxParticipants !== null && currentParticipants >= maxParticipants;
+  const isFull = maxParticipants !== null && currentParticipants >= maxParticipants;
 
   const handleJoinButtonClick = () => {
     if (isLoadingJoin) return;
@@ -89,73 +89,55 @@ const EventInfo: React.FC<EventInfoProps> = ({
   let buttonText = "Participar do Evento";
   let buttonDisabled = status === "past" || isLoadingJoin;
 
-  if (isPrivate) {
+  if (isJoined) {
+    buttonText = isHoveringUnsubscribe ? "Cancelar Inscrição" : "Inscrito";
+  } else {
     switch (userStatus) {
       case 'nao_inscrito':
-        buttonText = "Solicitar Inscrição";
+        buttonText = isPrivate ? "Solicitar Inscrição" : "Participar do Evento";
         break;
       case 'pendente':
         buttonText = "Solicitação Enviada";
         buttonDisabled = true;
         break;
-      case 'aprovado':
-        buttonText = isHoveringUnsubscribe ? "Cancelar Inscrição" : "Inscrito";
-        break;
       case 'recusado':
         buttonText = "Solicitação Recusada";
         buttonDisabled = true;
         break;
+      case 'convidado':
+        buttonText = "Aceitar Convite";
+        break;
     }
-  } else {
-      if (isLoadingJoin) {
-        buttonText = "Processando...";
-      } else if (isJoined) {
-        buttonText = isHoveringUnsubscribe ? "Cancelar Inscrição" : "Inscrito";
-      } else if (isFull) {
-        buttonText = "Vagas Esgotadas";
-      }
   }
 
-  if (isFull && !isJoined) {
-      buttonDisabled = true;
+  if (isFull && !isJoined && userStatus !== 'convidado') {
+    buttonDisabled = true;
   }
-
 
   return (
     <InfoSection>
       <InfoGrid>
         <InfoItem>
-          <InfoLabel>
-            <Calendar size={18} /> Data
-          </InfoLabel>
+          <InfoLabel><Calendar size={18} /> Data</InfoLabel>
           <InfoValue>{date}</InfoValue>
         </InfoItem>
         <InfoItem>
-          <InfoLabel>
-            <Clock size={18} /> Horário
-          </InfoLabel>
+          <InfoLabel><Clock size={18} /> Horário</InfoLabel>
           <InfoValue>{time}</InfoValue>
         </InfoItem>
         <InfoItem>
-          <InfoLabel>
-            <MapPin size={18} /> Local
-          </InfoLabel>
+          <InfoLabel><MapPin size={18} /> Local</InfoLabel>
           <InfoValue>{location}</InfoValue>
         </InfoItem>
         <InfoItem>
-          <InfoLabel>
-            <Users size={18} /> Participantes
-          </InfoLabel>
-          {/* 2. Passa a propriedade '$isFull' para o componente de estilo */}
+          <InfoLabel><Users size={18} /> Participantes</InfoLabel>
           <InfoValue $isFull={isFull}>
             {currentParticipants}
             {maxParticipants ? `/${maxParticipants}` : ""}
           </InfoValue>
         </InfoItem>
         <InfoItem>
-          <InfoLabel>
-            <Tag size={18} /> Categoria
-          </InfoLabel>
+          <InfoLabel><Tag size={18} /> Categoria</InfoLabel>
           <InfoValue>{category}</InfoValue>
         </InfoItem>
       </InfoGrid>
@@ -172,22 +154,19 @@ const EventInfo: React.FC<EventInfoProps> = ({
           $hoveringUnsubscribe={isJoined && isHoveringUnsubscribe}
           onClick={handleJoinButtonClick}
           disabled={buttonDisabled}
-          onMouseEnter={() => {
-            if (isJoined && !isLoadingJoin) {
-              setIsHoveringUnsubscribe(true);
-            }
-          }}
-          onMouseLeave={() => {
-            setIsHoveringUnsubscribe(false);
-          }}
+          onMouseEnter={() => { if (isJoined && !isLoadingJoin) { setIsHoveringUnsubscribe(true); }}}
+          onMouseLeave={() => { setIsHoveringUnsubscribe(false); }}
         >
           {buttonText}
         </JoinEventButton>
 
-        <ActionButton>
-          <Share2 size={20} />
-          Compartilhar
-        </ActionButton>
+        {/* ALTERAÇÃO: Adicionada condição para renderizar o botão */}
+        {(!isPrivate || isOwner) && (
+          <ActionButton onClick={onShareClick}>
+            <Share2 size={20} />
+            Compartilhar
+          </ActionButton>
+        )}
 
         {isOwner && (
           <>
@@ -196,10 +175,7 @@ const EventInfo: React.FC<EventInfoProps> = ({
               Editar Evento
             </ActionButton>
 
-            <DeleteEventButton
-              onClick={onDelete}
-              disabled={isLoadingJoin || isLoadingDelete}
-            >
+            <DeleteEventButton onClick={onDelete} disabled={isLoadingJoin || isLoadingDelete}>
               <Trash2 size={18} />
               {isLoadingDelete ? "Excluindo..." : "Excluir Evento"}
             </DeleteEventButton>

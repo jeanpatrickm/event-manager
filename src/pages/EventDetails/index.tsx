@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 import { User } from "@supabase/supabase-js";
-
+import InviteModal from '../../components/EventDetails/InviteModal';
 import {
   Container,
   ContentContainer,
@@ -66,7 +66,7 @@ type EventStatus = "upcoming" | "ongoing" | "past" | "undefined";
 const EventDetails: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
-
+  const [isInviteModalOpen, setInviteModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [eventData, setEventData] = useState<DetailedEventData | null>(null);
   const [participants, setParticipants] = useState<ParticipantData[]>([]);
@@ -205,7 +205,14 @@ const EventDetails: React.FC = () => {
     }
     setLoadingInteraction(true);
     try {
-      if (isJoined) {
+      if (userStatus === 'convidado') {
+        const { error } = await supabase.rpc('aceitar_convite_evento', { p_evento_id: eventData.evento_id });
+        if (error) throw error;
+        alert('Convite aceito com sucesso!');
+        setUserStatus('aprovado');
+        setIsJoined(true);
+        // Recarregar os dados para atualizar a lista de participantes seria ideal aqui, ou adicionar o usuário manualmente
+      } else if (isJoined) {
         // Lógica para SAIR do evento (DELETE) continua a mesma
         const { error: deleteError } = await supabase.from("inscricao").delete().match({ evento_id: eventData.evento_id, user_id: currentUser.id });
         if (deleteError) throw deleteError;
@@ -256,6 +263,21 @@ const EventDetails: React.FC = () => {
       alert(`Erro: ${err.message}`);
     } finally {
       setLoadingInteraction(false);
+    }
+  };
+
+  // CRIE a função que será passada para o modal
+  const handleSendInvites = async (selectedUserIds: string[]) => {
+    if (!eventData) return;
+    try {
+      const { error } = await supabase.rpc('convidar_usuarios_para_evento', {
+        p_evento_id: eventData.evento_id,
+        p_user_ids_to_invite: selectedUserIds
+      });
+      if (error) throw error;
+      alert('Convites enviados com sucesso!');
+    } catch (err: any) {
+      alert(`Erro ao enviar convites: ${err.message}`);
     }
   };
 
@@ -508,6 +530,7 @@ const EventDetails: React.FC = () => {
             onEdit={handleEditEvent}
             isPrivate={isPrivate}
             userStatus={userStatus}
+            onShareClick={() => setInviteModalOpen(true)}
           />
 
           <ParticipantsList
@@ -535,6 +558,16 @@ const EventDetails: React.FC = () => {
           />
         </ContentContainer>
       </div>
+      {/* RENDERIZE O MODAL */}
+      {eventData && (
+        <InviteModal
+          isOpen={isInviteModalOpen}
+          onClose={() => setInviteModalOpen(false)}
+          onSendInvites={handleSendInvites}
+          organizerId={eventData.user_id}
+          eventId={eventData.evento_id}
+        />
+      )}
     </Container>
   );
 };
