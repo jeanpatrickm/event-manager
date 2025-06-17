@@ -1,14 +1,14 @@
 "use client";
 
 import type React from "react";
-import { useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   ProfileContainer,
   ProfileContent,
   EventsGrid,
   SectionTitle,
-  SectionHeader
+  SectionHeader,
 } from "./styles";
 import EventCard from "../../components/Perfil/EventCard";
 import TabNavigation from "../../components/Perfil/TabNavigation";
@@ -27,7 +27,7 @@ interface ProfileEvent {
   descricao: string | null;
   image_capa: string | null;
   max_participantes: number | null;
-  data_evento: string; 
+  data_evento: string;
   inscricao: { count: number }[];
 }
 
@@ -41,7 +41,7 @@ const MyEventsPage: React.FC = () => {
   const [createdEvents, setCreatedEvents] = useState<ProfileEvent[]>([]);
   const [joinedEvents, setJoinedEvents] = useState<ProfileEvent[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
-  
+
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -50,15 +50,19 @@ const MyEventsPage: React.FC = () => {
       setLoadingEvents(true);
       setProfileData(null);
       setProfileErrorMsg(null);
-      
+
       try {
-        const { data: { user: loggedInUser } } = await supabase.auth.getUser();
-        
+        const {
+          data: { user: loggedInUser },
+        } = await supabase.auth.getUser();
+
         setCurrentUser(loggedInUser);
         const idToFetch = userId || loggedInUser?.id;
 
         if (!idToFetch) {
-          setProfileErrorMsg("Não foi possível identificar o perfil a ser exibido.");
+          setProfileErrorMsg(
+            "Não foi possível identificar o perfil a ser exibido."
+          );
           setLoadingProfile(false);
           setLoadingEvents(false);
           return;
@@ -89,25 +93,31 @@ const MyEventsPage: React.FC = () => {
             .from("eventos")
             .select("*, inscricao(count)")
             .eq("user_id", idToFetch)
-            // CORREÇÃO: Adicionado filtro para contar apenas inscrições aprovadas.
             .eq("inscricao.status", "aprovado")
-            .order("data_criacao", { ascending: false }),
+            .order("data_evento", { ascending: false }),
           supabase
             .from("inscricao")
             .select("eventos!inner(*, inscricao(count))")
             .eq("user_id", idToFetch)
-            .eq("status", "aprovado") // Filtra apenas as inscrições que o usuário de fato participa (aprovadas)
-            // CORREÇÃO: Adicionado filtro para a contagem aninhada.
-            .eq("eventos.inscricao.status", "aprovado")
+            .eq("status", "aprovado")
+            .eq("eventos.inscricao.status", "aprovado"),
         ]);
 
         if (createdRes.error) throw createdRes.error;
         setCreatedEvents(createdRes.data || []);
 
         if (inscriptionsRes.error) throw inscriptionsRes.error;
-        const joined = (inscriptionsRes.data || []).map(item => item.eventos).filter(Boolean) as ProfileEvent[];
-        setJoinedEvents(joined || []);
-        
+        const joined = (inscriptionsRes.data || [])
+          .map((item) => item.eventos)
+          .filter(Boolean) as unknown as ProfileEvent[];
+
+        // Adiciona a ordenação pelo lado do cliente
+        const sortedJoined = joined.sort(
+          (a, b) =>
+            new Date(b.data_evento).getTime() -
+            new Date(a.data_evento).getTime()
+        );
+        setJoinedEvents(sortedJoined || []);
       } catch (error: any) {
         console.error("Erro ao carregar dados da página:", error);
         setProfileErrorMsg("Ocorreu um erro ao carregar.");
@@ -194,14 +204,16 @@ const MyEventsPage: React.FC = () => {
           )}
         </>
       ),
-    }
+    },
   ];
 
   if (loadingProfile) {
     return (
       <Container>
         <Sidebar />
-        <ProfileContainer><div>Carregando...</div></ProfileContainer>
+        <ProfileContainer>
+          <div>Carregando...</div>
+        </ProfileContainer>
       </Container>
     );
   }
@@ -222,7 +234,9 @@ const MyEventsPage: React.FC = () => {
     return (
       <Container>
         <Sidebar />
-        <ProfileContainer><p>Não foi possível carregar.</p></ProfileContainer>
+        <ProfileContainer>
+          <p>Não foi possível carregar.</p>
+        </ProfileContainer>
       </Container>
     );
   }
