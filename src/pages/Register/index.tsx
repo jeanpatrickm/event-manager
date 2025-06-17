@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Mail, Lock, User } from "lucide-react";
 import { AuthCard } from "../../components/Register/AuthCard";
 import { Input } from "../../components/Register/Input";
@@ -10,7 +10,7 @@ import {
 } from "../../components/Register/SocialLogin";
 import SocialIcons from "../../components/Register/SocialIcons";
 import * as S from "./styles";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 
 const Register: React.FC = () => {
@@ -22,6 +22,34 @@ const Register: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const errorParam = searchParams.get("error");
+    if (errorParam === "user_already_exists") {
+      setErrorMessage("Usuário já cadastrado. Por favor, faça o login.");
+    }
+  }, [searchParams]);
+
+  const handleGoogleSignUp = async () => {
+    sessionStorage.setItem("authFlow", "register");
+    setLoading(true);
+    setErrorMessage(null);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) throw error;
+    } catch (error: any) {
+      setErrorMessage(
+        error.message || "Ocorreu um erro ao tentar o cadastro com o Google."
+      );
+      setLoading(false);
+    }
+  };
 
   const handleSignUp = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -63,7 +91,7 @@ const Register: React.FC = () => {
       if (error) {
         setErrorMessage(error.message);
       } else {
-        console.log(data)
+        console.log(data);
         // await supabase.from("profiles").insert([{ id: data?.user?.id, full_name: name }]);
         navigate("/login");
       }
@@ -130,7 +158,7 @@ const Register: React.FC = () => {
                 onChange={(e) => setTermsAccepted(e.target.checked)}
               />
 
-              {errorMessage && <p>{errorMessage}</p>}
+              {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
 
               <Button fullWidth type="submit" disabled={loading}>
                 {loading ? "Cadastrando..." : "Cadastrar"}
@@ -144,7 +172,10 @@ const Register: React.FC = () => {
               </S.LoginLink>
 
               <SocialLogin>
-                <SocialButton icon={<SocialIcons.Google />} />
+                <SocialButton
+                  onClick={handleGoogleSignUp}
+                  icon={<SocialIcons.Google />}
+                />
                 <SocialButton icon={<SocialIcons.Facebook />} />
                 <SocialButton icon={<SocialIcons.Twitter />} />
               </SocialLogin>

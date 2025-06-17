@@ -16,6 +16,15 @@ export const SocialLogin: React.FC<SocialLoginProps> = ({ children }) => {
   );
 };
 
-export const SocialButton: React.FC<{ icon: React.ReactNode }> = ({ icon }) => {
-  return <S.SocialButtonWrapper>{icon}</S.SocialButtonWrapper>;
+// Props do SocialButton atualizadas para incluir o onClick
+interface SocialButtonProps {
+  icon: React.ReactNode;
+  onClick?: () => void;
+}
+
+export const SocialButton: React.FC<SocialButtonProps> = ({
+  icon,
+  onClick,
+}) => {
+  return <S.SocialButtonWrapper onClick={onClick}>{icon}</S.SocialButtonWrapper>;
 };

@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import {
   Container,
@@ -35,7 +35,7 @@ import {
   SocialButton,
 } from "./styles";
 import SocialIcons from "../../components/Login/SocialIcons";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 
 const LoginPage: React.FC = () => {
@@ -46,6 +46,14 @@ const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const errorParam = searchParams.get("error");
+    if (errorParam === "user_not_found") {
+      setLoginError("Credenciais inválidas. Por favor, crie uma conta.");
+    }
+  }, [searchParams]);
 
   async function signInUser(email: string, password: string) {
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -55,6 +63,30 @@ const LoginPage: React.FC = () => {
     if (error) throw error;
     return data;
   }
+
+  const handleGoogleLogin = async () => {
+    sessionStorage.setItem("authFlow", "login");
+    setIsLoading(true);
+    setLoginError(null);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) {
+        throw error;
+      }
+    } catch (error: any) {
+      console.error("Error logging in with Google:", error);
+      setLoginError(
+        error.message || "Ocorreu um erro ao tentar logar com o Google."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,8 +173,7 @@ const LoginPage: React.FC = () => {
               </CheckboxWrapper>
               <ForgotPassword href="#">Esqueceu a senha?</ForgotPassword>
             </RememberForgotRow>
-            {loginError && <p style={{ color: "red" }}>{loginError}</p>}{" "}
-            {/* Exibe a mensagem de erro */}
+            {loginError && <p style={{ color: "red" }}>{loginError}</p>}
             <SubmitButton type="submit" disabled={isLoading}>
               Entrar
             </SubmitButton>
@@ -158,7 +189,7 @@ const LoginPage: React.FC = () => {
           <SocialLoginSection>
             <SocialDivider>Ou continue com</SocialDivider>
             <SocialButtons>
-              <SocialButton>
+              <SocialButton onClick={handleGoogleLogin}>
                 <SocialIcons.Google />
               </SocialButton>
               <SocialButton>

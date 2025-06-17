@@ -12,6 +12,7 @@ import EventDetails from "./pages/EventDetails";
 import Register from "./pages/Register";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
 import MyEventsPage from "./pages/MyEvents";
+import AuthCallbackPage from "./pages/AuthCallback"; // Importe a nova página
 
 const router = createBrowserRouter([
   {
@@ -69,6 +70,11 @@ const router = createBrowserRouter([
   {
     path: "/Register",
     element: <Register />,
+  },
+  // Adicione a nova rota de callback aqui
+  {
+    path: "/auth/callback",
+    element: <AuthCallbackPage />,
   },
 ]);
 
