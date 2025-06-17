@@ -176,8 +176,8 @@ const Register: React.FC = () => {
                   onClick={handleGoogleSignUp}
                   icon={<SocialIcons.Google />}
                 />
-                <SocialButton icon={<SocialIcons.Facebook />} />
-                <SocialButton icon={<SocialIcons.Twitter />} />
+                {/* <SocialButton icon={<SocialIcons.Facebook />} /> */}
+                {/* <SocialButton icon={<SocialIcons.Twitter />} /> */}
               </SocialLogin>
             </S.Form>
           </AuthCard>

@@ -192,9 +192,9 @@ const LoginPage: React.FC = () => {
               <SocialButton onClick={handleGoogleLogin}>
                 <SocialIcons.Google />
               </SocialButton>
-              <SocialButton>
+              {/* <SocialButton>
                 <SocialIcons.Twitter />
-              </SocialButton>
+              </SocialButton> */}
             </SocialButtons>
           </SocialLoginSection>
         </LoginCard>
